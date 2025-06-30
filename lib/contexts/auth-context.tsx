@@ -1,15 +1,8 @@
 'use client';
 
 import React, { createContext, useContext, useState, useEffect } from 'react';
-import { UserRole } from '@/lib/types/po';
+import { UserRole, User } from '@/lib/types/po';
 import AuthService, { LoginRequest } from '@/lib/api/auth';
-
-interface User {
-  id: string;
-  username: string;
-  email: string;
-  role: UserRole;
-}
 
 interface AuthContextType {
   user: User | null;
@@ -38,24 +31,38 @@ const mockUsers: Record<UserRole, User> = {
     username: 'admin',
     email: 'admin@company.com',
     role: UserRole.ADMIN,
+    permissions: [
+      { resource: 'po', actions: ['read', 'write', 'delete', 'approve'] },
+      { resource: 'user', actions: ['read', 'write', 'delete'] },
+      { resource: 'system', actions: ['read', 'write'] },
+    ],
   },
   [UserRole.MATERIAL_CONTROL]: {
     id: 'mc-001',
     username: 'material.control',
     email: 'mc@company.com',
     role: UserRole.MATERIAL_CONTROL,
+    permissions: [
+      { resource: 'po', actions: ['read', 'write', 'send_email'] },
+    ],
   },
   [UserRole.APP_USER]: {
     id: 'user-001',
     username: 'app.user',
     email: 'user@company.com',
     role: UserRole.APP_USER,
+    permissions: [
+      { resource: 'po', actions: ['read'] },
+    ],
   },
   [UserRole.VENDOR]: {
     id: 'vendor-001',
     username: 'vendor',
     email: 'vendor@supplier.com',
     role: UserRole.VENDOR,
+    permissions: [
+      { resource: 'po', actions: ['read', 'acknowledge'] },
+    ],
   },
 };
 
@@ -68,45 +75,13 @@ interface AuthProviderProps {
 export function AuthProvider({ 
   children, 
   defaultRole = UserRole.MATERIAL_CONTROL,
-  enableMockAuth = process.env.NODE_ENV === 'development' && process.env.NEXT_PUBLIC_ENABLE_MOCK_AUTH === 'true'
+  enableMockAuth = true
 }: AuthProviderProps) {
-  const [user, setUser] = useState<User | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
-
-  // Initialize auth state
-  useEffect(() => {
-    const initializeAuth = async () => {
-      setIsLoading(true);
-      
-      try {
-        if (enableMockAuth) {
-          // Use mock data for development
-          const initUser = mockUsers[defaultRole];
-          setUser(initUser);
-        } else {
-          // Check if user is already authenticated
-          if (AuthService.isAuthenticated()) {
-            try {
-              // Verify token is still valid and get fresh user data
-              const userData = await AuthService.getProfile();
-              setUser(userData);
-            } catch (error) {
-              // Token might be expired or invalid
-              console.warn('Failed to verify existing token:', error);
-              setUser(null);
-            }
-          }
-        }
-      } catch (error) {
-        console.error('Auth initialization failed:', error);
-        setUser(null);
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
-    initializeAuth();
-  }, [defaultRole, enableMockAuth]);
+  // For development, start with the mock user directly
+  const [user, setUser] = useState<User | null>(
+    enableMockAuth ? mockUsers[defaultRole] : null
+  );
+  const [isLoading, setIsLoading] = useState(false); // Start with false since we set user immediately
 
   const login = async (credentials: LoginRequest) => {
     setIsLoading(true);

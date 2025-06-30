@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useRouter, usePathname } from 'next/navigation';
 import { Box, CircularProgress, Typography } from '@mui/material';
 import { useAuth } from '@/lib/contexts/auth-context';
@@ -24,26 +24,29 @@ export function AuthGuard({
   const { isLoading, isAuthenticated } = useAuth();
   const router = useRouter();
   const pathname = usePathname();
+  const [hasRedirected, setHasRedirected] = useState(false);
   
   useEffect(() => {
-    if (isLoading) return; // Don't redirect while loading
+    if (isLoading || hasRedirected) return; // Don't redirect while loading or already redirected
     
     if (requireAuth && !isAuthenticated) {
       // User needs to be authenticated but isn't
       const defaultRedirect = `/auth/login?redirect=${encodeURIComponent(pathname)}`;
+      setHasRedirected(true);
       router.push(redirectTo || defaultRedirect);
       return;
     }
     
     if (!requireAuth && isAuthenticated) {
       // User shouldn't be on this page if authenticated (e.g., login page)
+      setHasRedirected(true);
       router.push(redirectTo || '/');
       return;
     }
-  }, [isLoading, isAuthenticated, requireAuth, router, pathname, redirectTo]);
+  }, [isLoading, isAuthenticated, requireAuth, router, pathname, redirectTo, hasRedirected]);
   
-  // Show loading state
-  if (isLoading) {
+  // Show loading state while checking auth or while redirecting
+  if (isLoading || hasRedirected) {
     return fallback || <AuthLoadingFallback />;
   }
   
