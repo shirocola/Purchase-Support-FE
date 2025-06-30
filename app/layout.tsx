@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import "./globals.css";
 import { Providers } from './providers';
-import { MainLayout } from '@/components/layout/MainLayout';
+import { ConditionalLayout } from '@/components/layout/ConditionalLayout';
 
 export const metadata: Metadata = {
   title: "Purchase Order Management System",
@@ -17,9 +17,9 @@ export default function RootLayout({
     <html lang="th">
       <body className="antialiased">
         <Providers>
-          <MainLayout>
+          <ConditionalLayout>
             {children}
-          </MainLayout>
+          </ConditionalLayout>
         </Providers>
       </body>
     </html>
