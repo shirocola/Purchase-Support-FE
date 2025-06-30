@@ -48,6 +48,22 @@
 - **POStatusTimeline Component** แสดงสถานะการไหลของ PO แบบ timeline/stepper
 - **POAuditLog Component** ประวัติการเปลี่ยนแปลงพร้อมระบบกรองข้อมูล
 - **Status Progression** DRAFT → PENDING → APPROVED → SENT → ACKNOWLEDGED
+- **Timeline/Stepper Layout** ปรับเปลี่ยนแบบ responsive (timeline บน mobile, stepper บน desktop)
+- **Enhanced Filtering** กรองตาม action, user, และ date range
+- **Field Change Details** แสดงรายละเอียดการเปลี่ยนแปลง field พร้อม old/new values
+- **Role-based Permissions** แสดง/ซ่อนข้อมูลตาม user role
+- **Metadata Support** แสดงข้อมูลเพิ่มเติมเมื่อมี
+
+### ✅ ระบบแสดง/ซ่อนเมนูตาม role (Task 7)
+- **Dynamic Menu/Sidebar** เมนู sidebar ที่ปรับเปลี่ยนตาม user role
+- **Role-based Access Control** แสดงเฉพาะเมนูที่ user มีสิทธิ์เข้าถึง (ซ่อน ไม่ใช่ disable)
+- **Multi-level Menu** รองรับ dropdown menu และ submenu
+- **Responsive Layout** ใช้ Drawer แบบ modal บน mobile, persistent บน desktop
+- **Role Switching** ฟีเจอร์เปลี่ยน role สำหรับ development และ testing
+- **Auth Context** ระบบจัดการ authentication และ role management
+- **Menu Configuration** config file ที่แยกสิทธิ์เมนูต่อ role อย่างชัดเจน
+- **User Information Display** แสดงข้อมูล user และ role ปัจจุบัน
+- **Navigation Integration** ทำงานร่วมกับ Next.js App Router
 - **Change Tracking** แสดงการเปลี่ยนแปลงฟิลด์ พร้อมค่าเก่า/ใหม่
 - **Advanced Filtering** กรองตาม action type, วันที่, ผู้ใช้
 - **Metadata Display** แสดงข้อมูลเพิ่มเติมเมื่อมี
@@ -90,6 +106,9 @@
 │       ├── send-email/page.tsx  # PO Email Form page
 │       └── acknowledge-status/page.tsx  # PO Acknowledge Status page
 ├── components/              # React components
+│   ├── layout/              # Layout components (Task 7)
+│   │   ├── MainLayout.tsx   # Main layout with sidebar
+│   │   └── Sidebar.tsx      # Dynamic sidebar with role-based menu
 │   ├── po/                 # PO-related components
 │   │   ├── POEditPreview.tsx    # Main edit/preview component
 │   │   ├── POEmailForm.tsx      # Email form component
@@ -104,7 +123,11 @@
 │   └── ui/                 # Reusable UI components
 │       ├── States.tsx      # Loading/Error/Empty states
 │       └── ConfirmDialog.tsx    # Confirmation dialog
+├── config/                  # Configuration files (Task 7)
+│   └── menu-config.ts      # Menu structure and role-based permissions
 ├── lib/                    # Utilities & business logic
+│   ├── contexts/           # React contexts (Task 7)
+│   │   └── auth-context.tsx # Authentication and role management
 │   ├── api/               # API service layer
 │   │   └── po.ts          # PO API services
 │   ├── hooks/             # React Query hooks
@@ -120,6 +143,10 @@
 │   ├── POAcknowledgeStatus.test.tsx
 │   ├── POStatusTimeline.test.tsx  # Task 6 tests
 │   ├── POAuditLog.test.tsx       # Task 6 tests
+│   ├── Sidebar.test.tsx          # Task 7 tests
+│   ├── MainLayout.test.tsx       # Task 7 tests
+│   ├── auth-context.test.tsx     # Task 7 tests
+│   ├── menu-config.test.ts       # Task 7 tests
 │   ├── AuditLog.test.tsx
 │   ├── PODetail.test.tsx
 │   └── POItemsTable.test.tsx
@@ -223,6 +250,31 @@ npm run test:ci     # Run tests with coverage
    - ดูการแสดงผลของ field changes และ metadata
 6. **ดู Supporting Components**: Tab ที่สาม - ดู POHeader และ POItemsTable
 7. **เปรียบเทียบ**: Tab สุดท้าย - ดู basic AuditLog component
+
+### ตัวอย่างการใช้งาน Dynamic Menu/Sidebar System (Task 7)
+
+1. **ดูเมนูพื้นฐาน**: เข้าหน้าแรก [http://localhost:3000](http://localhost:3000) 
+   - สังเกตเมนู sidebar ที่แสดงตาม MaterialControl role (default)
+   - ดูข้อมูล user และ role ที่ footer ของ sidebar
+2. **ทดสอบ Role Switching**: 
+   - คลิกปุ่ม "เปลี่ยนบทบาท" ใน AppBar
+   - เลือก role ต่างๆ เพื่อดูการเปลี่ยนแปลงเมนู
+3. **ทดสอบแต่ละ Role**:
+   - **Admin**: ดูเมนูครบทั้งหมด รวมถึง "ระบบจัดการ"
+   - **MaterialControl**: ดูเมนูหลักๆ ยกเว้นระบบจัดการ
+   - **AppUser**: ดูเมนูจำกัด ไม่มีการส่งอีเมล
+   - **Vendor**: ดูเฉพาะ "หน้าแรก" และ "Vendor Portal"
+4. **ทดสอบ Multi-level Menu**:
+   - คลิกที่เมนูที่มีลูกศร (เช่น "ระบบจัดการ" สำหรับ Admin)
+   - ดูการ expand/collapse ของ submenu
+5. **ทดสอบ Responsive**: 
+   - ลดขนาดหน้าจอให้เป็น mobile
+   - สังเกตการเปลี่ยนจาก persistent sidebar เป็น modal drawer
+   - ทดสอบปุ่มเปิด/ปิดเมนู
+6. **ทดสอบ Navigation**:
+   - คลิกเมนูต่างๆ เพื่อทดสอบการ navigate
+   - สังเกตการ highlight ของเมนูที่เลือก
+   - ทดสอบ breadcrumb path
 
 ### Component Features Details
 
