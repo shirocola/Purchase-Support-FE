@@ -1,30 +1,82 @@
-# Purchase Support System - Frontend
+# Purchase Order Management System (Frontend)
 
-A modern React/Next.js frontend application for managing Purchase Orders (PO) with role-based access control, audit logging, and responsive design.
+ระบบจัดการใบสั่งซื้อ (Purchase Order) ฝั่ง Frontend ที่สร้างด้วย Next.js, TypeScript และ Material-UI พร้อมระบบการควบคุมสิทธิ์ตามบทบาทผู้ใช้
+
+## 🎯 Overview
+
+โปรเจกต์นี้เป็นส่วน Frontend ของระบบจัดการ Purchase Order (PO) ที่มีฟีเจอร์หลัก:
+- **หน้า Preview & แก้ไข PO** พร้อมระบบสิทธิ์ตามบทบาทผู้ใช้
+- **ระบบ Role-based Access Control (RBAC)** สำหรับ AppUser, MaterialControl, Admin, Vendor
+- **การแสดง/ซ่อนข้อมูลตามสิทธิ์** (Data Masking)
+- **Responsive Design** รองรับ Desktop และ Mobile
+- **Form Validation และ Error Handling**
+- **Loading และ Empty States**
 
 ## 🚀 Features
 
-### PO Detail Page
-- **Comprehensive PO Information**: Display detailed purchase order information including vendor details, items, quantities, prices, and status
-- **Role-Based Access Control**: Show/hide sensitive information (financial data, action buttons) based on user permissions
-- **Status Tracking**: Real-time status display with historical status changes
-- **Audit Log**: Complete audit trail of all changes and actions performed on the PO
-- **Action Buttons**: Send emails to vendors, acknowledge POs, download PDFs (based on permissions)
-- **Responsive Design**: Optimized for both desktop and mobile devices
+### ✅ หน้า PO Preview & Edit (Task 3)
+- แสดงข้อมูล PO ครบถ้วน (รายการสินค้า, ราคา, vendor details)
+- แก้ไขข้อมูลตามสิทธิ์ของ user role
+- ปุ่ม action ตามสิทธิ์: "บันทึก", "ส่งอีเมล", "ย้อนกลับ"
+- Dialog ยืนยันสำหรับการบันทึกและส่งอีเมล
+- Validation ทุก field พร้อม error handling
+- Loading, error, empty states ครบถ้วน
 
-### Technical Features
-- **React Query**: Efficient data fetching and caching
-- **TypeScript**: Full type safety and better development experience
-- **Tailwind CSS**: Modern, responsive styling
-- **Component-Based Architecture**: Reusable and maintainable components
-- **Comprehensive Testing**: Unit tests for all components
-- **Error Handling**: Graceful error states and user feedback
+### 🎨 UI/UX Design
+- **Material-UI v7** สำหรับ component library
+- **Responsive Design** รองรับ desktop และ mobile
+- **Thai Language Support** UI ในภาษาไทย
+- **Consistent Design System** ตามมาตรฐาน Material Design
 
-## 🛠️ Installation
+### 🔐 Role-based Permissions
+- **AppUser**: ดูข้อมูลทั่วไป, แก้ไขหมายเหตุเท่านั้น, ซ่อนราคา
+- **MaterialControl**: แก้ไขข้อมูลหลัก, รายการสินค้า, ส่งอีเมล
+- **Admin**: สิทธิ์เต็ม รวมถึงอนุมัติและยกเลิก PO
+- **Vendor**: ดูข้อมูลอย่างจำกัด, ซ่อนข้อมูลสำคัญ
+
+## 🛠 Tech Stack
+
+- **Framework**: Next.js 15.3.4 (App Router)
+- **Language**: TypeScript
+- **UI Library**: Material-UI v7 + Material Icons
+- **State Management**: TanStack React Query v5
+- **Form Handling**: React Hook Form + Zod validation
+- **HTTP Client**: Axios
+- **Testing**: Jest + React Testing Library
+- **Styling**: Material-UI + CSS-in-JS
+
+## 📁 Project Structure
+
+```
+├── app/                    # Next.js App Router
+│   ├── page.tsx           # หน้าแรก
+│   ├── layout.tsx         # Root layout
+│   ├── providers.tsx      # React Query & Theme providers
+│   └── po/[id]/edit/      # PO Edit page
+├── components/            # React components
+│   ├── po/               # PO-related components
+│   │   └── POEditPreview.tsx
+│   └── ui/               # Reusable UI components
+├── lib/                  # Utilities & business logic
+│   ├── api/             # API service layer
+│   ├── hooks/           # React Query hooks
+│   ├── types/           # TypeScript types
+│   └── utils/           # Utility functions
+├── __tests__/           # Test files
+└── public/              # Static assets
+```
+
+## 🚀 Quick Start
+
+### Prerequisites
+- Node.js 18+ 
+- npm, yarn หรือ pnpm
+
+### Installation
 
 ```bash
-# Clone the repository
-git clone https://github.com/shirocola/Purchase-Support-FE.git
+# Clone repository
+git clone <repository-url>
 cd Purchase-Support-FE
 
 # Install dependencies
@@ -32,260 +84,171 @@ npm install
 
 # Start development server
 npm run dev
-
-# Build for production
-npm run build
-
-# Run tests
-npm test
 ```
 
-## 📁 Project Structure
+เปิด [http://localhost:3000](http://localhost:3000) ในบราวเซอร์
 
-```
-src/
-├── app/                    # Next.js app directory
-│   ├── layout.tsx         # Root layout
-│   ├── page.tsx           # Home page
-│   └── po/[poId]/         # PO detail page
-├── components/            # Reusable components
-│   ├── po/               # PO-specific components
-│   │   ├── PODetailPage.tsx
-│   │   ├── POHeader.tsx
-│   │   ├── POItemsTable.tsx
-│   │   ├── POStatusDisplay.tsx
-│   │   ├── POActionButtons.tsx
-│   │   └── AuditLog.tsx
-│   ├── LoadingComponents.tsx
-│   ├── ErrorComponents.tsx
-│   └── Tabs.tsx
-├── hooks/                # Custom React hooks
-│   └── usePO.ts          # PO data fetching hooks
-├── lib/                  # Utility libraries
-│   ├── api.ts           # API client
-│   ├── mockData.ts      # Mock data for development
-│   ├── providers.tsx    # React Query provider
-│   └── utils.ts         # Utility functions
-├── types/               # TypeScript type definitions
-│   └── po.ts           # PO-related types
-└── __tests__/          # Test files
+### Available Scripts
+
+```bash
+# Development
+npm run dev          # Start dev server with Turbopack
+npm run build        # Build for production
+npm run start        # Start production server
+
+# Code Quality
+npm run lint         # Run ESLint
+npm run type-check   # TypeScript type checking
+
+# Testing
+npm test            # Run tests
+npm run test:watch  # Run tests in watch mode
+npm run test:ci     # Run tests with coverage
 ```
 
-## 🎯 Usage Examples
+## 📱 Usage Examples
 
-### Viewing a PO Detail Page
+### ตัวอย่างการใช้งาน PO Preview & Edit
 
-Navigate to `/po/{poId}` to view a specific purchase order:
+1. **เข้าใสหน้าตัวอย่าง**: ไปที่ [http://localhost:3000](http://localhost:3000)
+2. **คลิก "ดูตัวอย่าง"** เพื่อไปหน้า PO Preview
+3. **ทดสอบการแก้ไข**: คลิกปุ่ม "แก้ไข" (สำหรับ role ที่มีสิทธิ์)
+4. **บันทึกข้อมูล**: แก้ไขข้อมูลและคลิก "บันทึก"
+5. **ส่งอีเมล**: คลิกปุ่ม "ส่งอีเมล" (สำหรับ PO ที่อนุมัติแล้ว)
 
+### Role-based Testing
+
+สามารถทดสอบ role ต่างๆ ได้โดยแก้ไข `mockUser.role` ใน `app/po/[id]/edit/page.tsx`:
+
+```typescript
+const mockUser = {
+  role: UserRole.MATERIAL_CONTROL, // เปลี่ยนเป็น AppUser, Admin, Vendor
+};
 ```
-http://localhost:3000/po/po-001
-```
-
-### Sample PO Data
-
-The application includes mock data for development. Sample PO includes:
-
-- **PO Number**: PO-001
-- **Vendor**: ABC Supplies Co., Ltd.
-- **Items**: Steel Pipes, Industrial Bolts, Safety Equipment
-- **Status**: Sent to Vendor
-- **Audit Log**: Complete history of changes
-
-### Role-Based Features
-
-The application adapts based on user permissions:
-
-#### MaterialControl Role (Full Access)
-- View all PO details including financial data
-- Send emails to vendors
-- Acknowledge POs
-- View complete audit log
-
-#### AppUser Role (Limited Access)
-- View PO details (financial data may be masked)
-- Limited action capabilities
-
-#### Vendor Role
-- View PO details
-- Acknowledge PO receipt
-- Limited audit log access
 
 ## 🧪 Testing
 
-The application includes comprehensive tests:
+โปรเจกต์มี test coverage ครอบคลุม:
+- **Component rendering** และ UI behavior
+- **Role-based permissions** และ data masking
+- **Form validation** และ error handling
+- **API integration** และ loading states
+- **Responsive design** testing
 
 ```bash
 # Run all tests
 npm test
 
-# Run tests in watch mode
-npm run test:watch
+# Run tests with coverage
+npm run test:ci
 
 # Run specific test file
-npm test PODetail.test.tsx
+npm test POEditPreview.test.tsx
 ```
 
-### Test Coverage
-- **Component Tests**: All UI components
-- **Integration Tests**: Component interactions
-- **Permission Tests**: Role-based access control
-- **Error Handling**: Error states and edge cases
+## 🎨 Screenshots
 
-## 🎨 UI Components
+### หน้าแรก (Homepage)
+แสดงภาพรวมของระบบและลิงก์ไปยังฟีเจอร์ต่างๆ
 
-### PODetailPage
-Main page component that orchestrates all PO detail functionality.
+### PO Preview & Edit Page
+- แสดงข้อมูล PO ครบถ้วน
+- ปุ่ม action ตามสิทธิ์ user
+- Form แก้ไขข้อมูลแบบ responsive
+- ตารางรายการสินค้าพร้อม data masking
 
-**Features:**
-- Navigation breadcrumbs
-- Success/error messages
-- Responsive layout with sidebar
-- Tab-based content organization
-
-### POHeader
-Displays essential PO information at the top of the page.
-
-**Contents:**
-- PO number and basic information
-- Vendor contact details
-- Notes and attachments
-- Creation and update timestamps
-
-### POItemsTable
-Shows the list of items in the purchase order.
-
-**Features:**
-- Responsive table layout
-- Financial data masking based on permissions
-- Item descriptions and quantities
-- Total amount calculation
-
-### POStatusDisplay
-Shows current status and complete status history.
-
-**Features:**
-- Current status highlight
-- Timeline of status changes
-- Status descriptions and timestamps
-- Visual indicators for status progression
-
-### AuditLog
-Complete audit trail of all actions performed on the PO.
-
-**Features:**
-- Chronological list of actions
-- User information for each action
-- Before/after values for changes
-- Metadata for additional context
-
-### POActionButtons
-Action buttons available based on user permissions.
-
-**Available Actions:**
-- Send email to vendor
-- Acknowledge PO
-- Download PDF
-- Copy link
-- Confirmation dialogs for critical actions
-
-## 🔒 Security & Permissions
-
-The application implements comprehensive role-based access control:
-
-### Permission Types
-- `canView`: Basic viewing permissions
-- `canEdit`: Editing capabilities
-- `canDelete`: Deletion rights
-- `canSendEmail`: Email sending permissions
-- `canViewAuditLog`: Audit log access
-- `canViewFinancialData`: Financial information access
-
-### Data Masking
-Financial information is automatically hidden when users lack appropriate permissions.
-
-## 📱 Responsive Design
-
-The application is fully responsive with optimized layouts for:
-
-- **Desktop**: Full-featured layout with sidebar
-- **Tablet**: Adapted grid layout
-- **Mobile**: Stacked layout with touch-friendly interactions
-
-## 🚦 Error Handling
-
-Comprehensive error handling for various scenarios:
-
-- **404 Not Found**: PO doesn't exist
-- **403 Forbidden**: Insufficient permissions
-- **Network Errors**: Connection issues
-- **Loading States**: User feedback during data fetching
-- **Empty States**: No data available
-
-## 🛣️ API Integration
-
-The application is designed to work with a backend API:
-
-```typescript
-// Example API endpoints
-GET /api/po/{id}              // Get PO details
-GET /api/po/{id}/audit-log    // Get audit log
-GET /api/po/{id}/permissions  // Get user permissions
-POST /api/po/{id}/send-email  // Send email to vendor
-POST /api/po/{id}/acknowledge // Acknowledge PO
-```
-
-For development, mock data is used to simulate API responses.
+### Mobile Responsive
+- การแสดงผลที่เหมาะสำหรับหน้าจอมือถือ
+- ปรับ layout และ font size อัตโนมัติ
 
 ## 🔧 Configuration
 
 ### Environment Variables
-```env
+
+สร้างไฟล์ `.env.local`:
+
+```bash
 NEXT_PUBLIC_API_BASE_URL=http://localhost:3001/api
-NODE_ENV=development
 ```
 
-### Build Configuration
-- Next.js 15+ with App Router
-- TypeScript strict mode
-- Tailwind CSS for styling
-- PostCSS for CSS processing
+### API Integration
 
-## 📈 Performance
+Component จะเรียก API ตาม endpoint ที่กำหนดใน `lib/api/po.ts`:
+- `GET /po/:id` - ดึงข้อมูล PO
+- `PATCH /po/:id` - อัปเดต PO
+- `POST /po/:id/send-email` - ส่งอีเมล PO
 
-- **React Query**: Efficient data caching and synchronization
-- **Code Splitting**: Automatic code splitting with Next.js
-- **Image Optimization**: Next.js image optimization
-- **Bundle Analysis**: Webpack bundle analyzer for optimization
+## 🚧 Development Notes
+
+### Business Logic
+- **Permission System**: ดู `lib/utils/permissions.ts` สำหรับ logic การควบคุมสิทธิ์
+- **Data Masking**: ใช้ `maskValue()` function สำหรับซ่อนข้อมูลตาม role
+- **Form Validation**: ใช้ React Hook Form พร้อม validation rules
+
+### Code Style
+- ใช้ TypeScript strict mode
+- ESLint configuration สำหรับ Next.js
+- Component naming convention: PascalCase
+- File naming: camelCase สำหรับ utilities, PascalCase สำหรับ components
+
+## 🔄 API Mock Data
+
+ในระหว่างการพัฒนา component จะใช้ mock data จาก React Query hooks ที่ `lib/hooks/usePO.ts`
+
+ตัวอย่าง PO data structure:
+```typescript
+{
+  id: 'po-001',
+  poNumber: 'PO-2024-001',
+  title: 'Test Purchase Order',
+  status: 'DRAFT',
+  vendor: { name: 'Test Vendor', email: 'vendor@test.com' },
+  items: [{ productName: 'Product 1', quantity: 10, unitPrice: 100 }],
+  totalAmount: 1000,
+  // ... other fields
+}
+```
 
 ## 🤝 Contributing
 
-1. Fork the repository
-2. Create a feature branch
-3. Make your changes
-4. Add tests for new functionality
-5. Ensure all tests pass
-6. Submit a pull request
+1. Fork repository
+2. สร้าง feature branch (`git checkout -b feature/amazing-feature`)
+3. Commit changes (`git commit -m 'Add amazing feature'`)
+4. Push to branch (`git push origin feature/amazing-feature`)
+5. เปิด Pull Request
+
+## 📝 Todo / Roadmap
+
+### Phase 1 (Current)
+- [x] PO Preview & Edit page
+- [x] Role-based permissions
+- [x] Responsive design
+- [x] Basic testing
+
+### Phase 2 (Planned)
+- [ ] PO List page
+- [ ] Advanced search & filtering
+- [ ] Audit log display
+- [ ] Email tracking
+- [ ] Print functionality
+
+### Phase 3 (Future)
+- [ ] Real-time notifications
+- [ ] Bulk operations
+- [ ] Export to Excel/PDF
+- [ ] Advanced reporting
 
 ## 📄 License
 
-This project is licensed under the ISC License.
+This project is private and proprietary.
 
-## 🐛 Known Issues
+## 🙋‍♂️ Support
 
-- Mock data is used for development - replace with actual API integration
-- Some advanced features may require backend implementation
-- Email functionality requires SMTP configuration
-
-## 🔮 Future Enhancements
-
-- [ ] Real-time notifications
-- [ ] Advanced filtering and search
-- [ ] Bulk operations
-- [ ] File upload for attachments
-- [ ] Print-friendly views
-- [ ] Export to Excel/PDF
-- [ ] Multi-language support
+สำหรับคำถามหรือปัญหา กรุณา:
+- เปิด Issue ใน GitHub repository
+- ติดต่อทีมพัฒนา
+- ดู documentation ใน `/docs` folder (หากมี)
 
 ---
 
-For more information, please refer to the [API documentation](../openapi.yaml) and [project guidelines](../.github/copilot-instructions.md).
+**ข้อมูลเพิ่มเติม**: ดู [Copilot Instructions](./.github/copilot-instructions.md) สำหรับ guidelines การพัฒนา
