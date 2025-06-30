@@ -3,7 +3,6 @@
 import React, { useState, useEffect } from 'react';
 import {
   Box,
-  Paper,
   Typography,
   TextField,
   Button,
@@ -24,22 +23,19 @@ import {
   Snackbar,
 } from '@mui/material';
 import {
-  Email,
   Close,
   Preview,
   Send,
   Refresh,
   ArrowBack,
 } from '@mui/icons-material';
-import { useForm, Controller, useFieldArray } from 'react-hook-form';
+import { useForm, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 
 import { 
   UserRole,
-  POStatus,
-  POEmailFormData,
-  PurchaseOrder
+  POStatus
 } from '@/lib/types/po';
 import { 
   getRolePermissions, 
@@ -54,11 +50,18 @@ import {
 import { LoadingState, ErrorState } from '@/components/ui/States';
 import { ConfirmDialog } from '@/components/ui/ConfirmDialog';
 
+// Form data type for react-hook-form
+type EmailFormData = {
+  recipientEmails: string[];
+  customMessage?: string;
+  includeAttachments: boolean;
+}
+
 // Validation schema
 const emailFormSchema = z.object({
   recipientEmails: z.array(z.string().email('กรุณาระบุอีเมลที่ถูกต้อง')).min(1, 'กรุณาระบุอีเมลผู้รับอย่างน้อย 1 รายการ'),
   customMessage: z.string().optional(),
-  includeAttachments: z.boolean().default(true),
+  includeAttachments: z.boolean(),
 });
 
 interface POEmailFormProps {
@@ -73,6 +76,7 @@ export function POEmailForm({ poId, userRole, onBack, onSuccess }: POEmailFormPr
   const isMobile = useMediaQuery(theme.breakpoints.down('md'));
 
   // State management
+  const [emailAddresses, setEmailAddresses] = useState<string[]>([]);
   const [showPreview, setShowPreview] = useState(false);
   const [confirmDialog, setConfirmDialog] = useState<{
     open: boolean;
@@ -107,8 +111,9 @@ export function POEmailForm({ poId, userRole, onBack, onSuccess }: POEmailFormPr
     handleSubmit,
     watch,
     reset,
+    setValue,
     formState: { errors, isDirty },
-  } = useForm<POEmailFormData>({
+  } = useForm<EmailFormData>({
     resolver: zodResolver(emailFormSchema),
     defaultValues: {
       recipientEmails: [],
@@ -117,26 +122,28 @@ export function POEmailForm({ poId, userRole, onBack, onSuccess }: POEmailFormPr
     },
   });
 
-  const { fields: emailFields, append: appendEmail, remove: removeEmail } = useFieldArray({
-    control,
-    name: 'recipientEmails',
-  });
-
   const watchedFormData = watch();
 
   // Initialize form with vendor email
   useEffect(() => {
-    if (po && emailFields.length === 0) {
+    if (po && emailAddresses.length === 0) {
+      const initialEmails = po.vendor.email ? [po.vendor.email] : [];
+      setEmailAddresses(initialEmails);
       reset({
-        recipientEmails: po.vendor.email ? [po.vendor.email] : [],
+        recipientEmails: initialEmails,
         customMessage: `เรียน ${po.vendor.contactPerson || po.vendor.name},\n\nขอส่ง Purchase Order ฉบับนี้มาเพื่อดำเนินการตามรายการที่ระบุ\n\nขอบคุณสำหรับความร่วมมือ`,
         includeAttachments: true,
       });
     }
-  }, [po, reset, emailFields.length]);
+  }, [po, reset, emailAddresses.length]);
+
+  // Update form when email addresses change
+  useEffect(() => {
+    setValue('recipientEmails', emailAddresses);
+  }, [emailAddresses, setValue]);
 
   // Handle form submission
-  const handleSendEmail = async (data: POEmailFormData) => {
+  const handleSendEmail = async (data: EmailFormData) => {
     try {
       await sendEmailMutation.mutateAsync({
         id: poId,
@@ -170,7 +177,20 @@ export function POEmailForm({ poId, userRole, onBack, onSuccess }: POEmailFormPr
 
   // Add new email field
   const handleAddEmail = () => {
-    appendEmail('');
+    setEmailAddresses([...emailAddresses, '']);
+  };
+
+  // Remove email field
+  const handleRemoveEmail = (index: number) => {
+    const newEmails = emailAddresses.filter((_, i) => i !== index);
+    setEmailAddresses(newEmails);
+  };
+
+  // Update email at index
+  const handleEmailChange = (index: number, value: string) => {
+    const newEmails = [...emailAddresses];
+    newEmails[index] = value;
+    setEmailAddresses(newEmails);
   };
 
   // Handle back navigation
@@ -273,7 +293,7 @@ ${po.items.map((item, index) =>
             <CardContent>
               <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
                 <Typography variant="h6">สถานะการส่งอีเมล</Typography>
-                <IconButton onClick={refetchEmailStatus} size="small">
+                <IconButton onClick={() => refetchEmailStatus()} size="small">
                   <Refresh />
                 </IconButton>
               </Box>
@@ -307,7 +327,7 @@ ${po.items.map((item, index) =>
       {/* Check if PO can be sent */}
       {po.status !== POStatus.APPROVED && (
         <Alert severity="warning" sx={{ mb: 3 }}>
-          PO ต้องมีสถานะ "อนุมัติแล้ว" เท่านั้นถึงจะสามารถส่งอีเมลได้
+          PO ต้องมีสถานะ &quot;อนุมัติแล้ว&quot; เท่านั้นถึงจะสามารถส่งอีเมลได้
         </Alert>
       )}
 
@@ -326,25 +346,20 @@ ${po.items.map((item, index) =>
                 ผู้รับอีเมล
               </Typography>
               
-              {emailFields.map((field, index) => (
-                <Box key={field.id} sx={{ display: 'flex', gap: 1, mb: 2 }}>
-                  <Controller
-                    name={`recipientEmails.${index}`}
-                    control={control}
-                    render={({ field: inputField }) => (
-                      <TextField
-                        {...inputField}
-                        fullWidth
-                        label={`อีเมลผู้รับ ${index + 1}`}
-                        type="email"
-                        error={!!errors.recipientEmails?.[index]}
-                        helperText={errors.recipientEmails?.[index]?.message}
-                      />
-                    )}
+              {emailAddresses.map((email, index) => (
+                <Box key={index} sx={{ display: 'flex', gap: 1, mb: 2 }}>
+                  <TextField
+                    fullWidth
+                    label={`อีเมลผู้รับ ${index + 1}`}
+                    type="email"
+                    value={email}
+                    onChange={(e) => handleEmailChange(index, e.target.value)}
+                    error={!!errors.recipientEmails?.[index]}
+                    helperText={errors.recipientEmails?.[index]?.message}
                   />
-                  {emailFields.length > 1 && (
+                  {emailAddresses.length > 1 && (
                     <IconButton 
-                      onClick={() => removeEmail(index)}
+                      onClick={() => handleRemoveEmail(index)}
                       color="error"
                     >
                       <Close />
@@ -429,7 +444,7 @@ ${po.items.map((item, index) =>
               variant="outlined"
               startIcon={<Preview />}
               onClick={() => setShowPreview(true)}
-              disabled={!isDirty && emailFields.length === 0}
+              disabled={!isDirty && emailAddresses.length === 0}
             >
               ดูตัวอย่าง
             </Button>
@@ -440,7 +455,7 @@ ${po.items.map((item, index) =>
               disabled={
                 sendEmailMutation.isPending || 
                 po.status !== POStatus.APPROVED ||
-                emailFields.length === 0
+                emailAddresses.length === 0
               }
             >
               {sendEmailMutation.isPending ? 'กำลังส่ง...' : 'ส่งอีเมล'}

@@ -188,6 +188,11 @@ describe('POEmailForm', () => {
         </TestWrapper>
       );
 
+      // Wait for form to initialize
+      await waitFor(() => {
+        expect(screen.getByDisplayValue('vendor@test.com')).toBeInTheDocument();
+      });
+
       const addEmailButton = screen.getByText('เพิ่มอีเมลผู้รับ');
       await user.click(addEmailButton);
 
@@ -203,9 +208,19 @@ describe('POEmailForm', () => {
         </TestWrapper>
       );
 
+      // Wait for form to initialize
+      await waitFor(() => {
+        expect(screen.getByDisplayValue('vendor@test.com')).toBeInTheDocument();
+      });
+
       // Add second email
       const addEmailButton = screen.getByText('เพิ่มอีเมลผู้รับ');
       await user.click(addEmailButton);
+
+      // Wait for second field to appear
+      await waitFor(() => {
+        expect(screen.getByLabelText('อีเมลผู้รับ 2')).toBeInTheDocument();
+      });
 
       // Remove second email
       const removeButtons = screen.getAllByRole('button', { name: '' });
