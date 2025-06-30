@@ -51,6 +51,10 @@ export interface AuditLogEntry {
   timestamp: string;
   userId: string;
   userName: string;
+  metadata?: {
+    description?: string;
+    [key: string]: unknown;
+  };
 }
 
 export enum POStatus {

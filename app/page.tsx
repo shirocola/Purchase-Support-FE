@@ -77,6 +77,26 @@ export default function Home() {
             </Button>
           </CardContent>
         </Card>
+
+        <Card sx={{ flex: 1 }}>
+          <CardContent sx={{ textAlign: 'center', p: 3 }}>
+            <Assignment sx={{ fontSize: 48, color: 'primary.main', mb: 2 }} />
+            <Typography variant="h6" gutterBottom>
+              สถานะ & Audit Log
+            </Typography>
+            <Typography variant="body2" color="text.secondary" sx={{ mb: 3 }}>
+              ดูสถานะ PO และประวัติการเปลี่ยนแปลง
+            </Typography>
+            <Button
+              variant="contained"
+              fullWidth
+              component={Link}
+              href="/components-showcase"
+            >
+              ดูตัวอย่าง
+            </Button>
+          </CardContent>
+        </Card>
       </Box>
 
       <Box sx={{ mt: 6, p: 3, bgcolor: 'grey.50', borderRadius: 2 }}>

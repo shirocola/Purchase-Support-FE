@@ -44,6 +44,16 @@
 - **Responsive Design** รองรับ desktop และ mobile
 - **Permission Control** แสดง/ซ่อนตามสิทธิ์ของ user role
 
+### ✅ ระบบแสดงสถานะ PO & AuditLog (Task 6)
+- **POStatusTimeline Component** แสดงสถานะการไหลของ PO แบบ timeline/stepper
+- **POAuditLog Component** ประวัติการเปลี่ยนแปลงพร้อมระบบกรองข้อมูล
+- **Status Progression** DRAFT → PENDING → APPROVED → SENT → ACKNOWLEDGED
+- **Change Tracking** แสดงการเปลี่ยนแปลงฟิลด์ พร้อมค่าเก่า/ใหม่
+- **Advanced Filtering** กรองตาม action type, วันที่, ผู้ใช้
+- **Metadata Display** แสดงข้อมูลเพิ่มเติมเมื่อมี
+- **Responsive Design** Timeline สำหรับ mobile, Stepper สำหรับ desktop
+- **Permission Control** แสดง/ซ่อนข้อมูลตามสิทธิ์ผู้ใช้
+
 ### 🎨 UI/UX Design
 - **Material-UI v7** สำหรับ component library
 - **Responsive Design** รองรับ desktop และ mobile
@@ -74,6 +84,7 @@
 │   ├── page.tsx             # หน้าแรก
 │   ├── layout.tsx           # Root layout
 │   ├── providers.tsx        # React Query & Theme providers
+│   ├── components-showcase/page.tsx # Component showcase (Task 6)
 │   └── po/[id]/             # PO routes
 │       ├── edit/page.tsx    # PO Edit page
 │       ├── send-email/page.tsx  # PO Email Form page
@@ -82,7 +93,14 @@
 │   ├── po/                 # PO-related components
 │   │   ├── POEditPreview.tsx    # Main edit/preview component
 │   │   ├── POEmailForm.tsx      # Email form component
-│   │   └── POAcknowledgeStatus.tsx  # Vendor acknowledge tracking
+│   │   ├── POAcknowledgeStatus.tsx  # Vendor acknowledge tracking
+│   │   ├── POStatusTimeline.tsx # Status timeline/stepper (Task 6)
+│   │   ├── POAuditLog.tsx      # Enhanced audit log with filters (Task 6)
+│   │   ├── AuditLog.tsx        # Basic audit log component
+│   │   ├── POHeader.tsx        # PO header information
+│   │   ├── POItemsTable.tsx    # Items table with permissions
+│   │   ├── POStatusDisplay.tsx # Status display component
+│   │   └── POActionButtons.tsx # Action buttons component
 │   └── ui/                 # Reusable UI components
 │       ├── States.tsx      # Loading/Error/Empty states
 │       └── ConfirmDialog.tsx    # Confirmation dialog
@@ -93,12 +111,18 @@
 │   │   └── usePO.ts       # PO-related hooks
 │   ├── types/             # TypeScript types
 │   │   └── po.ts          # PO type definitions
-│   └── utils/             # Utility functions
-│       └── permissions.ts  # Role-based permissions
+│   ├── utils/             # Utility functions
+│   │   └── permissions.ts  # Role-based permissions
+│   └── mockData.ts        # Mock data for testing/demo
 ├── __tests__/             # Test files
 │   ├── POEditPreview.test.tsx
 │   ├── POEmailForm.test.tsx
-│   └── POAcknowledgeStatus.test.tsx
+│   ├── POAcknowledgeStatus.test.tsx
+│   ├── POStatusTimeline.test.tsx  # Task 6 tests
+│   ├── POAuditLog.test.tsx       # Task 6 tests
+│   ├── AuditLog.test.tsx
+│   ├── PODetail.test.tsx
+│   └── POItemsTable.test.tsx
 └── public/                # Static assets
 ```
 
@@ -128,12 +152,14 @@ npm run dev
 
 ### Main Routes
 - `/` - หน้าแรก
+- `/components-showcase` - ตัวอย่างการใช้งาน POStatusTimeline & POAuditLog
 - `/po/[id]/edit` - หน้าแก้ไข/ดู PO
 - `/po/[id]/send-email` - หน้าส่งอีเมล PO
 - `/po/[id]/acknowledge-status` - หน้าติดตาม vendor acknowledge
 
 ### Example URLs
 ```
+http://localhost:3000/components-showcase           # Component showcase (Task 6)
 http://localhost:3000/po/po-001/edit              # แก้ไข PO
 http://localhost:3000/po/po-001/send-email        # ส่งอีเมล PO
 http://localhost:3000/po/po-001/acknowledge-status # ติดตาม vendor acknowledge
@@ -182,6 +208,36 @@ npm run test:ci     # Run tests with coverage
 4. **ส่งอีเมลซ้ำ**: (สำหรับ Admin/MaterialControl) กดปุ่ม "ส่งอีเมลซ้ำ" หากต้องการ
 5. **คัดลอกลิงก์**: กดปุ่ม "คัดลอกลิงก์ยืนยัน" เพื่อแชร์ลิงก์ให้ vendor
 6. **รีเฟรชข้อมูล**: กดปุ่ม refresh เพื่ออัปเดตสถานะล่าสุด
+
+### ตัวอย่างการใช้งาน Component Showcase (Task 6)
+
+1. **เข้าหน้าตัวอย่าง**: ไปที่ [http://localhost:3000/components-showcase](http://localhost:3000/components-showcase)
+2. **เลือก User Role**: ใช้ dropdown เลือก role เพื่อดูการแสดงผลตามสิทธิ์
+3. **เลือก Status**: เปลี่ยน current status เพื่อดูการทำงานของ timeline
+4. **ดู POStatusTimeline**: 
+   - Tab แรก - ดูแสดงการไหลของสถานะ PO
+   - เปรียบเทียบ timeline กับ stepper layout
+5. **ทดสอบ POAuditLog**:
+   - Tab ที่สอง - ดูระบบ audit log พร้อมฟิลเตอร์
+   - ลองกรองข้อมูลตาม action type, user name, หรือวันที่
+   - ดูการแสดงผลของ field changes และ metadata
+6. **ดู Supporting Components**: Tab ที่สาม - ดู POHeader และ POItemsTable
+7. **เปรียบเทียบ**: Tab สุดท้าย - ดู basic AuditLog component
+
+### Component Features Details
+
+#### POStatusTimeline
+- **Responsive Design**: Timeline บน mobile, Stepper บน desktop
+- **Status Progression**: แสดงขั้นตอนจาก DRAFT → ACKNOWLEDGED
+- **Role-based Display**: ซ่อน/แสดงข้อมูลตามสิทธิ์
+- **Custom History**: รองรับ status history หรือใช้ default progression
+
+#### POAuditLog  
+- **Advanced Filtering**: กรองตาม action type, user name, date range
+- **Change Tracking**: แสดงการเปลี่ยนแปลงฟิลด์พร้อมค่าเก่า/ใหม่
+- **Metadata Support**: แสดงข้อมูลเพิ่มเติมเมื่อมี
+- **Interactive UI**: Filter panel ที่ expand/collapse ได้
+- **Permission Control**: ควบคุมการแสดงผลตาม user role
 
 ### Role-based Testing
 
@@ -297,12 +353,13 @@ Component จะเรียก API ตาม endpoint ที่กำหนด�
 - [x] Basic testing
 - [x] Advanced email form (Task 4)
 - [x] Vendor acknowledge tracking (Task 5)
+- [x] PO Status Timeline & Audit Log (Task 6)
 
 ### Phase 2 (Planned)
 - [ ] PO List page
 - [ ] Advanced search & filtering
-- [ ] Audit log display
 - [ ] Print functionality
+- [ ] Status history API integration
 
 ### Phase 3 (Future)
 - [ ] Real-time notifications

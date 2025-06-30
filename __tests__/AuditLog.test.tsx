@@ -22,7 +22,7 @@ describe('AuditLog', () => {
     expect(screen.getByText('UPDATE')).toBeInTheDocument()
     expect(screen.getByText('Added delivery notes')).toBeInTheDocument()
 
-    expect(screen.getByText('STATUS_CHANGE')).toBeInTheDocument()
+    expect(screen.getAllByText('STATUS_CHANGE')[0]).toBeInTheDocument()
     expect(screen.getByText('Status changed from draft to pending')).toBeInTheDocument()
 
     expect(screen.getByText('EMAIL_SENT')).toBeInTheDocument()

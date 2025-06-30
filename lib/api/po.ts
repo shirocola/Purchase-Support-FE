@@ -1,5 +1,5 @@
 import axios, { AxiosResponse } from 'axios';
-import { PurchaseOrder, APIResponse, POEditFormData, POEmailFormData, POEmailStatus, POAcknowledgeData } from '@/lib/types/po';
+import { PurchaseOrder, APIResponse, POEditFormData, POEmailFormData, POEmailStatus, POAcknowledgeData, AuditLogEntry } from '@/lib/types/po';
 
 // Configure axios instance
 const api = axios.create({
@@ -86,8 +86,8 @@ export class POService {
   /**
    * Get PO audit log
    */
-  static async getPOAuditLog(id: string): Promise<unknown[]> {
-    const response: AxiosResponse<APIResponse<unknown[]>> = await api.get(`/po/${id}/audit-log`);
+  static async getPOAuditLog(id: string): Promise<AuditLogEntry[]> {
+    const response: AxiosResponse<APIResponse<AuditLogEntry[]>> = await api.get(`/po/${id}/audit-log`);
     if (!response.data.success) {
       throw new Error(response.data.message || 'Failed to fetch audit log');
     }
