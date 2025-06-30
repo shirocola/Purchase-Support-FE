@@ -13,11 +13,14 @@ import {
   Menu,
   MenuItem,
   Chip,
+  Divider,
 } from '@mui/material';
 import {
   Menu as MenuIcon,
   AccountCircle,
   SwapHoriz,
+  Logout,
+  Person,
 } from '@mui/icons-material';
 import { useAuth } from '@/lib/contexts/auth-context';
 import { Sidebar } from './Sidebar';
@@ -35,12 +38,13 @@ const roleLabels: Record<UserRole, string> = {
 };
 
 export function MainLayout({ children }: MainLayoutProps) {
-  const { user, switchRole } = useAuth();
+  const { user, switchRole, logout } = useAuth();
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('md'));
   
   const [sidebarOpen, setSidebarOpen] = useState(!isMobile);
   const [roleMenuAnchor, setRoleMenuAnchor] = useState<null | HTMLElement>(null);
+  const [userMenuAnchor, setUserMenuAnchor] = useState<null | HTMLElement>(null);
 
   const drawerWidth = 280;
 
@@ -59,6 +63,26 @@ export function MainLayout({ children }: MainLayoutProps) {
   const handleRoleSwitch = (role: UserRole) => {
     switchRole(role);
     handleRoleMenuClose();
+  };
+
+  const handleUserMenuOpen = (event: React.MouseEvent<HTMLElement>) => {
+    setUserMenuAnchor(event.currentTarget);
+  };
+
+  const handleUserMenuClose = () => {
+    setUserMenuAnchor(null);
+  };
+
+  const handleLogout = async () => {
+    try {
+      await logout();
+      handleUserMenuClose();
+      // Logout function will handle redirect
+    } catch (error) {
+      console.error('Logout failed:', error);
+      // Even if logout fails, close menu
+      handleUserMenuClose();
+    }
   };
 
   if (!user) {
@@ -105,8 +129,61 @@ export function MainLayout({ children }: MainLayoutProps) {
             ระบบจัดการใบสั่งซื้อ
           </Typography>
 
-          {/* Role Indicator and Switcher */}
+          {/* User Menu and Role Controls */}
           <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+            {/* User Info and Menu */}
+            <Button
+              color="inherit"
+              startIcon={<Person />}
+              onClick={handleUserMenuOpen}
+              size="small"
+              sx={{ 
+                textTransform: 'none',
+                borderColor: 'rgba(255, 255, 255, 0.3)',
+              }}
+              variant="outlined"
+            >
+              {user.username}
+            </Button>
+
+            <Menu
+              anchorEl={userMenuAnchor}
+              open={Boolean(userMenuAnchor)}
+              onClose={handleUserMenuClose}
+              anchorOrigin={{
+                vertical: 'bottom',
+                horizontal: 'right',
+              }}
+              transformOrigin={{
+                vertical: 'top',
+                horizontal: 'right',
+              }}
+            >
+              <MenuItem disabled>
+                <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start' }}>
+                  <Typography variant="body2" fontWeight="bold">
+                    {user.username}
+                  </Typography>
+                  <Typography variant="caption" color="text.secondary">
+                    {user.email}
+                  </Typography>
+                  <Chip
+                    label={roleLabels[user.role]}
+                    size="small"
+                    color="primary"
+                    variant="outlined"
+                    sx={{ mt: 0.5 }}
+                  />
+                </Box>
+              </MenuItem>
+              <Divider />
+              <MenuItem onClick={handleLogout}>
+                <Logout fontSize="small" sx={{ mr: 1 }} />
+                ออกจากระบบ
+              </MenuItem>
+            </Menu>
+            
+            {/* Role Indicator */}
             <Chip
               label={roleLabels[user.role]}
               size="small"
@@ -122,20 +199,22 @@ export function MainLayout({ children }: MainLayoutProps) {
             />
             
             {/* Role Switcher (Development Feature) */}
-            <Button
-              color="inherit"
-              startIcon={<SwapHoriz />}
-              onClick={handleRoleMenuOpen}
-              size="small"
-              sx={{ 
-                ml: 1,
-                textTransform: 'none',
-                borderColor: 'rgba(255, 255, 255, 0.3)',
-              }}
-              variant="outlined"
-            >
-              เปลี่ยนบทบาท
-            </Button>
+            {process.env.NODE_ENV === 'development' && (
+              <Button
+                color="inherit"
+                startIcon={<SwapHoriz />}
+                onClick={handleRoleMenuOpen}
+                size="small"
+                sx={{ 
+                  ml: 1,
+                  textTransform: 'none',
+                  borderColor: 'rgba(255, 255, 255, 0.3)',
+                }}
+                variant="outlined"
+              >
+                เปลี่ยนบทบาท
+              </Button>
+            )}
             
             <Menu
               anchorEl={roleMenuAnchor}

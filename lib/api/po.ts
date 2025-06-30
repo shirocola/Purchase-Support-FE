@@ -9,21 +9,36 @@ const api = axios.create({
 
 // Add auth token to requests
 api.interceptors.request.use((config) => {
-  const token = localStorage.getItem('authToken');
+  // Get token from AuthService for better integration
+  let token = null;
+  if (typeof window !== 'undefined') {
+    token = localStorage.getItem('authToken');
+  }
+  
   if (token) {
     config.headers.Authorization = `Bearer ${token}`;
   }
   return config;
 });
 
-// Handle response errors
+// Handle response errors with proper auth integration
 api.interceptors.response.use(
   (response) => response,
   (error) => {
     if (error.response?.status === 401) {
-      // Handle unauthorized - redirect to login
-      localStorage.removeItem('authToken');
-      window.location.href = '/login';
+      // Handle unauthorized - clear token and redirect to login
+      if (typeof window !== 'undefined') {
+        localStorage.removeItem('authToken');
+        localStorage.removeItem('refreshToken');
+        localStorage.removeItem('userData');
+        
+        // Only redirect if not already on login page
+        if (!window.location.pathname.includes('/auth/login')) {
+          const currentPath = window.location.pathname + window.location.search;
+          const redirectUrl = `/auth/login?redirect=${encodeURIComponent(currentPath)}`;
+          window.location.href = redirectUrl;
+        }
+      }
     }
     return Promise.reject(error);
   }
