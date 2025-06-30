@@ -6,6 +6,7 @@ import { ReactQueryDevtools } from '@tanstack/react-query-devtools';
 import { ThemeProvider, createTheme } from '@mui/material/styles';
 import { CssBaseline, StyledEngineProvider } from '@mui/material';
 import { AppRouterCacheProvider } from '@mui/material-nextjs/v15-appRouter';
+import { AuthProvider } from '@/lib/contexts/auth-context';
 
 // Create a theme instance
 const theme = createTheme({
@@ -77,7 +78,9 @@ export function Providers({ children }: { children: React.ReactNode }) {
         <QueryClientProvider client={client}>
           <ThemeProvider theme={theme}>
             <CssBaseline />
-            {children}
+            <AuthProvider>
+              {children}
+            </AuthProvider>
             <ReactQueryDevtools initialIsOpen={false} />
           </ThemeProvider>
         </QueryClientProvider>
