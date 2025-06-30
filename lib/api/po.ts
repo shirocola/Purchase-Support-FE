@@ -1,5 +1,5 @@
 import axios, { AxiosResponse } from 'axios';
-import { PurchaseOrder, APIResponse, POEditFormData, POEmailFormData, POEmailStatus } from '@/lib/types/po';
+import { PurchaseOrder, APIResponse, POEditFormData, POEmailFormData, POEmailStatus, POAcknowledgeData } from '@/lib/types/po';
 
 // Configure axios instance
 const api = axios.create({
@@ -114,6 +114,38 @@ export class POService {
       throw new Error(response.data.message || 'Failed to cancel PO');
     }
     return response.data.data!;
+  }
+
+  /**
+   * Get PO acknowledge status
+   */
+  static async getPOAcknowledgeStatus(id: string): Promise<POAcknowledgeData> {
+    const response: AxiosResponse<APIResponse<POAcknowledgeData>> = await api.get(`/po/${id}/acknowledge-status`);
+    if (!response.data.success) {
+      throw new Error(response.data.message || 'Failed to fetch acknowledge status');
+    }
+    return response.data.data!;
+  }
+
+  /**
+   * Resend PO email to vendor
+   */
+  static async resendPOEmail(id: string): Promise<void> {
+    const response: AxiosResponse<APIResponse<void>> = await api.post(`/po/${id}/resend-email`);
+    if (!response.data.success) {
+      throw new Error(response.data.message || 'Failed to resend email');
+    }
+  }
+
+  /**
+   * Get PO acknowledge link
+   */
+  static async getPOAcknowledgeLink(id: string): Promise<string> {
+    const response: AxiosResponse<APIResponse<{ link: string }>> = await api.get(`/po/${id}/acknowledge-link`);
+    if (!response.data.success) {
+      throw new Error(response.data.message || 'Failed to get acknowledge link');
+    }
+    return response.data.data!.link;
   }
 }
 

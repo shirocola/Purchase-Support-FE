@@ -116,6 +116,9 @@ export interface RolePermissions {
   canSave: boolean;
   canApprove: boolean;
   canCancel: boolean;
+  canViewAcknowledgeStatus: boolean;
+  canResendEmail: boolean;
+  canCopyAcknowledgeLink: boolean;
   maskedFields: string[];
 }
 
@@ -131,5 +134,29 @@ export interface POEmailStatus {
   lastSentAt?: string;
   lastSentBy?: string;
   emailsSent: number;
+  lastError?: string;
+}
+
+// Vendor acknowledge status tracking
+export enum POAcknowledgeStatus {
+  NOT_SENT = 'NOT_SENT',
+  SENT_PENDING = 'SENT_PENDING', 
+  ACKNOWLEDGED = 'ACKNOWLEDGED',
+  REJECTED = 'REJECTED'
+}
+
+export interface POAcknowledgeData {
+  status: POAcknowledgeStatus;
+  emailSentAt?: string;
+  emailSentBy?: string;
+  acknowledgedAt?: string;
+  acknowledgedBy?: string;
+  rejectedAt?: string;
+  rejectionReason?: string;
+  vendorEmail: string;
+  vendorName: string;
+  acknowledgeLink?: string;
+  emailsSent: number;
+  lastEmailSentAt?: string;
   lastError?: string;
 }

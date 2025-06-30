@@ -118,3 +118,45 @@ export function usePOAuditLog(id: string) {
     enabled: !!id,
   });
 }
+
+/**
+ * Hook to fetch PO acknowledge status
+ */
+export function usePOAcknowledgeStatus(id: string) {
+  return useQuery({
+    queryKey: ['po-acknowledge-status', id],
+    queryFn: () => POService.getPOAcknowledgeStatus(id),
+    enabled: !!id,
+    staleTime: 30 * 1000, // 30 seconds - shorter for more real-time feel
+    refetchInterval: 60 * 1000, // Auto-refresh every minute
+  });
+}
+
+/**
+ * Hook to resend PO email
+ */
+export function useResendPOEmail() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (id: string) => POService.resendPOEmail(id),
+    onSuccess: (_, id) => {
+      // Invalidate related queries to refetch updated status
+      queryClient.invalidateQueries({ queryKey: ['po', id] });
+      queryClient.invalidateQueries({ queryKey: ['po-email-status', id] });
+      queryClient.invalidateQueries({ queryKey: ['po-acknowledge-status', id] });
+    },
+  });
+}
+
+/**
+ * Hook to get PO acknowledge link
+ */
+export function usePOAcknowledgeLink(id: string) {
+  return useQuery({
+    queryKey: ['po-acknowledge-link', id],
+    queryFn: () => POService.getPOAcknowledgeLink(id),
+    enabled: false, // Only fetch when explicitly requested
+    staleTime: 5 * 60 * 1000, // 5 minutes
+  });
+}
