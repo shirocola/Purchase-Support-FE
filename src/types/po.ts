@@ -1,86 +1,69 @@
-export interface PurchaseOrder {
-  id: string;
-  poNumber: string;
-  createdDate: string;
-  vendor: {
-    id: string;
-    name: string;
-    email?: string;
-  };
-  status: POStatus;
-  totalAmount: number;
-  currency: string;
-  description?: string;
-  requesterName: string;
-  departmentName: string;
-  approvedDate?: string;
-  sentDate?: string;
-  acknowledgedDate?: string;
-  items: POItem[];
-}
-
 export interface POItem {
-  id: string;
-  itemCode: string;
-  description: string;
-  quantity: number;
-  unitPrice: number;
-  totalPrice: number;
-  unit: string;
+  id: string
+  name: string
+  description?: string
+  quantity: number
+  unitPrice: number
+  totalPrice: number
+  unit: string
 }
 
-export enum POStatus {
-  DRAFT = 'DRAFT',
-  PENDING_APPROVAL = 'PENDING_APPROVAL',
-  APPROVED = 'APPROVED',
-  SENT_TO_VENDOR = 'SENT_TO_VENDOR',
-  ACKNOWLEDGED = 'ACKNOWLEDGED',
-  COMPLETED = 'COMPLETED',
-  CANCELLED = 'CANCELLED'
+export interface Vendor {
+  id: string
+  name: string
+  email: string
+  address?: string
+  phone?: string
 }
 
-export interface POListParams {
-  page?: number;
-  pageSize?: number;
-  search?: string;
-  status?: POStatus[];
-  vendorId?: string;
-  dateFrom?: string;
-  dateTo?: string;
-  sortBy?: 'createdDate' | 'poNumber' | 'totalAmount' | 'status';
-  sortOrder?: 'asc' | 'desc';
+export interface POStatus {
+  id: string
+  status: 'draft' | 'pending' | 'sent' | 'acknowledged' | 'completed' | 'cancelled'
+  statusDate: string
+  description?: string
 }
 
-export interface POListResponse {
-  data: PurchaseOrder[];
-  totalCount: number;
-  totalPages: number;
-  currentPage: number;
-  pageSize: number;
+export interface PurchaseOrder {
+  id: string
+  poNumber: string
+  date: string
+  vendor: Vendor
+  items: POItem[]
+  totalAmount: number
+  currentStatus: POStatus
+  statusHistory: POStatus[]
+  notes?: string
+  attachments?: string[]
+  createdBy: string
+  createdAt: string
+  updatedAt: string
+}
+
+export interface AuditLogEntry {
+  id: string
+  poId: string
+  action: string
+  description: string
+  userId: string
+  userName: string
+  timestamp: string
+  oldValue?: any
+  newValue?: any
+  metadata?: Record<string, any>
 }
 
 export interface User {
-  id: string;
-  username: string;
-  email: string;
-  role: UserRole;
-  permissions: Permission[];
+  id: string
+  name: string
+  email: string
+  role: 'AppUser' | 'MaterialControl' | 'Admin' | 'Vendor'
 }
 
-export enum UserRole {
-  ADMIN = 'ADMIN',
-  MATERIAL_CONTROL = 'MATERIAL_CONTROL',
-  APP_USER = 'APP_USER',
-  VENDOR = 'VENDOR'
-}
-
-export enum Permission {
-  VIEW_ALL_PO = 'VIEW_ALL_PO',
-  VIEW_OWN_PO = 'VIEW_OWN_PO',
-  CREATE_PO = 'CREATE_PO',
-  EDIT_PO = 'EDIT_PO',
-  DELETE_PO = 'DELETE_PO',
-  APPROVE_PO = 'APPROVE_PO',
-  SEND_PO_EMAIL = 'SEND_PO_EMAIL',
-  ACKNOWLEDGE_PO = 'ACKNOWLEDGE_PO'
+export interface Permission {
+  canView: boolean
+  canEdit: boolean
+  canDelete: boolean
+  canSendEmail: boolean
+  canViewAuditLog: boolean
+  canViewFinancialData: boolean
 }

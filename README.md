@@ -1,246 +1,291 @@
-# Purchase Order Management System - Frontend
+# Purchase Support System - Frontend
 
-ระบบจัดการใบสั่งซื้อ (Purchase Order) สำหรับองค์กร
+A modern React/Next.js frontend application for managing Purchase Orders (PO) with role-based access control, audit logging, and responsive design.
 
-## ภาพรวม
+## 🚀 Features
 
-โปรเจกต์นี้เป็น Frontend Application สำหรับระบบจัดการ Purchase Order ที่พัฒนาด้วย Next.js, TypeScript, และ Material-UI
+### PO Detail Page
+- **Comprehensive PO Information**: Display detailed purchase order information including vendor details, items, quantities, prices, and status
+- **Role-Based Access Control**: Show/hide sensitive information (financial data, action buttons) based on user permissions
+- **Status Tracking**: Real-time status display with historical status changes
+- **Audit Log**: Complete audit trail of all changes and actions performed on the PO
+- **Action Buttons**: Send emails to vendors, acknowledge POs, download PDFs (based on permissions)
+- **Responsive Design**: Optimized for both desktop and mobile devices
 
-### เทคโนโลยีที่ใช้
+### Technical Features
+- **React Query**: Efficient data fetching and caching
+- **TypeScript**: Full type safety and better development experience
+- **Tailwind CSS**: Modern, responsive styling
+- **Component-Based Architecture**: Reusable and maintainable components
+- **Comprehensive Testing**: Unit tests for all components
+- **Error Handling**: Graceful error states and user feedback
 
-- **Framework**: Next.js 15 with App Router
-- **Language**: TypeScript
-- **UI Library**: Material-UI (MUI)
-- **State Management**: React Query (@tanstack/react-query)
-- **HTTP Client**: Axios
-- **Styling**: Tailwind CSS + Material-UI
-- **Testing**: Jest + React Testing Library
-- **Form Management**: React Hook Form + Zod
-
-## การติดตั้งและเริ่มต้น
-
-### Prerequisites
-
-- Node.js 18+ 
-- npm, yarn, pnpm หรือ bun
-
-### Installation
+## 🛠️ Installation
 
 ```bash
-# Clone repository
-git clone [repository-url]
+# Clone the repository
+git clone https://github.com/shirocola/Purchase-Support-FE.git
 cd Purchase-Support-FE
 
 # Install dependencies
 npm install
 
-# Copy environment variables
-cp .env.example .env.local
-
-# Run development server
+# Start development server
 npm run dev
+
+# Build for production
+npm run build
+
+# Run tests
+npm test
 ```
 
-### Environment Variables
+## 📁 Project Structure
 
-สร้างไฟล์ `.env.local` และกำหนดค่าตัวแปรต่อไปนี้:
-
-```env
-NEXT_PUBLIC_API_URL=http://localhost:3001/api
+```
+src/
+├── app/                    # Next.js app directory
+│   ├── layout.tsx         # Root layout
+│   ├── page.tsx           # Home page
+│   └── po/[poId]/         # PO detail page
+├── components/            # Reusable components
+│   ├── po/               # PO-specific components
+│   │   ├── PODetailPage.tsx
+│   │   ├── POHeader.tsx
+│   │   ├── POItemsTable.tsx
+│   │   ├── POStatusDisplay.tsx
+│   │   ├── POActionButtons.tsx
+│   │   └── AuditLog.tsx
+│   ├── LoadingComponents.tsx
+│   ├── ErrorComponents.tsx
+│   └── Tabs.tsx
+├── hooks/                # Custom React hooks
+│   └── usePO.ts          # PO data fetching hooks
+├── lib/                  # Utility libraries
+│   ├── api.ts           # API client
+│   ├── mockData.ts      # Mock data for development
+│   ├── providers.tsx    # React Query provider
+│   └── utils.ts         # Utility functions
+├── types/               # TypeScript type definitions
+│   └── po.ts           # PO-related types
+└── __tests__/          # Test files
 ```
 
-## การใช้งาน
+## 🎯 Usage Examples
 
-เปิดเบราว์เซอร์และไปที่ [http://localhost:3000](http://localhost:3000)
+### Viewing a PO Detail Page
 
-### หน้าสำคัญ
+Navigate to `/po/{poId}` to view a specific purchase order:
 
-- `/` - หน้าหลัก
-- `/po` - รายการ Purchase Order
-- `/po/[id]` - รายละเอียด PO (จะพัฒนาในงานต่อไป)
-- `/po/create` - สร้าง PO ใหม่ (จะพัฒนาในงานต่อไป)
+```
+http://localhost:3000/po/po-001
+```
 
-## ฟีเจอร์หลัก - PO List
+### Sample PO Data
 
-### การแสดงผล
+The application includes mock data for development. Sample PO includes:
 
-- ✅ ตารางแสดงรายการ PO พร้อมข้อมูลสำคัญ
-- ✅ Responsive design (desktop/mobile)
-- ✅ Pagination แบบ server-side
-- ✅ Sorting ตามคอลัมน์ต่าง ๆ
+- **PO Number**: PO-001
+- **Vendor**: ABC Supplies Co., Ltd.
+- **Items**: Steel Pipes, Industrial Bolts, Safety Equipment
+- **Status**: Sent to Vendor
+- **Audit Log**: Complete history of changes
 
-### การค้นหาและกรอง
+### Role-Based Features
 
-- ✅ ค้นหาด้วยเลข PO
-- ✅ กรองตามสถานะ PO
-- ✅ Debounced search (500ms)
+The application adapts based on user permissions:
 
-### การจัดการสิทธิ์
+#### MaterialControl Role (Full Access)
+- View all PO details including financial data
+- Send emails to vendors
+- Acknowledge POs
+- View complete audit log
 
-- ✅ แสดง/ซ่อนปุ่มตาม role และ permission
-- ✅ ปุ่มดูรายละเอียด (ทุก role ที่มีสิทธิ์ดู PO)
-- ✅ ปุ่มแก้ไข (เฉพาะผู้มี EDIT_PO permission)
-- ✅ ปุ่มส่งอีเมล (เฉพาะผู้มี SEND_PO_EMAIL permission)
-- ✅ ปุ่มลบ (เฉพาะผู้มี DELETE_PO permission)
+#### AppUser Role (Limited Access)
+- View PO details (financial data may be masked)
+- Limited action capabilities
 
-### State Management
+#### Vendor Role
+- View PO details
+- Acknowledge PO receipt
+- Limited audit log access
 
-- ✅ Loading state
-- ✅ Error state พร้อม retry
-- ✅ Empty state เมื่อไม่มีข้อมูล
+## 🧪 Testing
 
-## Screenshots
-
-### Desktop View
-![PO List Desktop](docs/screenshots/po-list-desktop.png)
-
-### Mobile View  
-![PO List Mobile](docs/screenshots/po-list-mobile.png)
-
-### Search & Filter
-![Search and Filter](docs/screenshots/po-list-search.png)
-
-## การทดสอบ
+The application includes comprehensive tests:
 
 ```bash
-# Run tests
-npm run test
+# Run all tests
+npm test
 
 # Run tests in watch mode
 npm run test:watch
 
-# Run tests with coverage
-npm run test:coverage
+# Run specific test file
+npm test PODetail.test.tsx
 ```
 
 ### Test Coverage
+- **Component Tests**: All UI components
+- **Integration Tests**: Component interactions
+- **Permission Tests**: Role-based access control
+- **Error Handling**: Error states and edge cases
 
-- ✅ Component rendering
-- ✅ Data fetching และ display
-- ✅ Search functionality
-- ✅ Filter functionality  
-- ✅ Permission-based UI
-- ✅ Error handling
-- ✅ Loading states
-- ✅ User interactions
+## 🎨 UI Components
 
-## โครงสร้างโปรเจกต์
+### PODetailPage
+Main page component that orchestrates all PO detail functionality.
 
-```
-src/
-├── app/                 # Next.js App Router pages
-│   ├── po/             # PO related pages
-│   │   └── page.tsx    # PO List page
-│   ├── layout.tsx      # Root layout
-│   └── page.tsx        # Home page
-├── components/         # React components
-│   └── POList.tsx     # Main PO List component
-├── hooks/             # Custom React hooks
-│   └── usePO.ts       # PO related hooks
-├── services/          # API services
-│   └── poService.ts   # PO API service
-├── types/             # TypeScript type definitions
-│   └── po.ts          # PO related types
-├── utils/             # Utility functions
-│   └── helpers.ts     # Helper functions
-└── __tests__/         # Test files
-    └── POList.test.tsx
-```
+**Features:**
+- Navigation breadcrumbs
+- Success/error messages
+- Responsive layout with sidebar
+- Tab-based content organization
 
-## API Integration
+### POHeader
+Displays essential PO information at the top of the page.
 
-### Endpoints ที่ใช้
+**Contents:**
+- PO number and basic information
+- Vendor contact details
+- Notes and attachments
+- Creation and update timestamps
 
-- `GET /api/po` - ดึงรายการ PO (พร้อม pagination, search, filter)
-- `GET /api/po/:id` - ดึงรายละเอียด PO
-- `POST /api/po/:id/send-email` - ส่งอีเมล PO ให้ vendor
+### POItemsTable
+Shows the list of items in the purchase order.
 
-### Response Format
+**Features:**
+- Responsive table layout
+- Financial data masking based on permissions
+- Item descriptions and quantities
+- Total amount calculation
+
+### POStatusDisplay
+Shows current status and complete status history.
+
+**Features:**
+- Current status highlight
+- Timeline of status changes
+- Status descriptions and timestamps
+- Visual indicators for status progression
+
+### AuditLog
+Complete audit trail of all actions performed on the PO.
+
+**Features:**
+- Chronological list of actions
+- User information for each action
+- Before/after values for changes
+- Metadata for additional context
+
+### POActionButtons
+Action buttons available based on user permissions.
+
+**Available Actions:**
+- Send email to vendor
+- Acknowledge PO
+- Download PDF
+- Copy link
+- Confirmation dialogs for critical actions
+
+## 🔒 Security & Permissions
+
+The application implements comprehensive role-based access control:
+
+### Permission Types
+- `canView`: Basic viewing permissions
+- `canEdit`: Editing capabilities
+- `canDelete`: Deletion rights
+- `canSendEmail`: Email sending permissions
+- `canViewAuditLog`: Audit log access
+- `canViewFinancialData`: Financial information access
+
+### Data Masking
+Financial information is automatically hidden when users lack appropriate permissions.
+
+## 📱 Responsive Design
+
+The application is fully responsive with optimized layouts for:
+
+- **Desktop**: Full-featured layout with sidebar
+- **Tablet**: Adapted grid layout
+- **Mobile**: Stacked layout with touch-friendly interactions
+
+## 🚦 Error Handling
+
+Comprehensive error handling for various scenarios:
+
+- **404 Not Found**: PO doesn't exist
+- **403 Forbidden**: Insufficient permissions
+- **Network Errors**: Connection issues
+- **Loading States**: User feedback during data fetching
+- **Empty States**: No data available
+
+## 🛣️ API Integration
+
+The application is designed to work with a backend API:
 
 ```typescript
-interface POListResponse {
-  data: PurchaseOrder[];
-  totalCount: number;
-  totalPages: number;
-  currentPage: number;
-  pageSize: number;
-}
+// Example API endpoints
+GET /api/po/{id}              // Get PO details
+GET /api/po/{id}/audit-log    // Get audit log
+GET /api/po/{id}/permissions  // Get user permissions
+POST /api/po/{id}/send-email  // Send email to vendor
+POST /api/po/{id}/acknowledge // Acknowledge PO
 ```
 
-## Commands
+For development, mock data is used to simulate API responses.
 
-```bash
-# Development
-npm run dev          # Start development server
-npm run build        # Build for production
-npm run start        # Start production server
-npm run lint         # Run ESLint
+## 🔧 Configuration
 
-# Testing  
-npm run test         # Run tests
-npm run test:watch   # Run tests in watch mode
-npm run test:coverage # Run tests with coverage report
+### Environment Variables
+```env
+NEXT_PUBLIC_API_BASE_URL=http://localhost:3001/api
+NODE_ENV=development
 ```
 
-## การพัฒนาต่อ
+### Build Configuration
+- Next.js 15+ with App Router
+- TypeScript strict mode
+- Tailwind CSS for styling
+- PostCSS for CSS processing
 
-### งานที่ยังไม่เสร็จ
+## 📈 Performance
 
-- [ ] หน้ารายละเอียด PO
-- [ ] หน้าสร้าง/แก้ไข PO
-- [ ] ระบบ Authentication
-- [ ] Role-based routing
+- **React Query**: Efficient data caching and synchronization
+- **Code Splitting**: Automatic code splitting with Next.js
+- **Image Optimization**: Next.js image optimization
+- **Bundle Analysis**: Webpack bundle analyzer for optimization
+
+## 🤝 Contributing
+
+1. Fork the repository
+2. Create a feature branch
+3. Make your changes
+4. Add tests for new functionality
+5. Ensure all tests pass
+6. Submit a pull request
+
+## 📄 License
+
+This project is licensed under the ISC License.
+
+## 🐛 Known Issues
+
+- Mock data is used for development - replace with actual API integration
+- Some advanced features may require backend implementation
+- Email functionality requires SMTP configuration
+
+## 🔮 Future Enhancements
+
 - [ ] Real-time notifications
-- [ ] Export เป็น PDF/Excel
+- [ ] Advanced filtering and search
+- [ ] Bulk operations
+- [ ] File upload for attachments
+- [ ] Print-friendly views
+- [ ] Export to Excel/PDF
+- [ ] Multi-language support
 
-### การเพิ่มฟีเจอร์ใหม่
+---
 
-1. สร้าง component ใน `src/components/`
-2. เพิ่ม API service ใน `src/services/`
-3. สร้าง hooks ใน `src/hooks/`
-4. เพิ่ม types ใน `src/types/`
-5. เขียน tests ใน `src/__tests__/`
-
-## การ Deploy
-
-### Vercel (แนะนำ)
-
-```bash
-# Install Vercel CLI
-npm i -g vercel
-
-# Deploy
-vercel
-```
-
-### อื่น ๆ
-
-```bash
-# Build static files
-npm run build
-
-# Serve static files
-npm run start
-```
-
-## การแก้ปัญหา
-
-### ปัญหาเกี่ยวกับ Material-UI
-
-หาก component ไม่แสดงผลหรือ styling ไม่ถูกต้อง:
-
-1. ตรวจสอบ ThemeProvider wrapper
-2. ตรวจสอบ CssBaseline import
-3. ตรวจสอบ emotion cache
-
-### ปัญหาเกี่ยวกับ React Query
-
-หาก data ไม่ update:
-
-1. ตรวจสอบ queryKey
-2. ตรวจสอบ invalidateQueries
-3. ตรวจสอบ staleTime และ cacheTime
-
-## License
-
-Private Project - All Rights Reserved
+For more information, please refer to the [API documentation](../openapi.yaml) and [project guidelines](../.github/copilot-instructions.md).

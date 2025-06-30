@@ -1,3 +1,29 @@
+<<<<<<< HEAD
+import type { Metadata } from 'next'
+import { QueryProvider } from '@/lib/providers'
+import './globals.css'
+
+export const metadata: Metadata = {
+  title: 'Purchase Support System',
+  description: 'Purchase Order Management System',
+}
+
+export default function RootLayout({
+  children,
+}: {
+  children: React.ReactNode
+}) {
+  return (
+    <html lang="en">
+      <body>
+        <QueryProvider>
+          {children}
+        </QueryProvider>
+      </body>
+    </html>
+  )
+}
+=======
 import type { Metadata } from "next";
 import "./globals.css";
 
@@ -19,3 +45,4 @@ export default function RootLayout({
     </html>
   );
 }
+>>>>>>> main
