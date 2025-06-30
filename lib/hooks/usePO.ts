@@ -1,6 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { POService } from '@/lib/api/po';
-import { POEditFormData } from '@/lib/types/po';
+import { POEditFormData, POEmailFormData } from '@/lib/types/po';
 
 /**
  * Hook to fetch PO data
@@ -43,7 +43,37 @@ export function useSendPOEmail() {
     onSuccess: (_, id) => {
       // Invalidate PO data to refetch updated status
       queryClient.invalidateQueries({ queryKey: ['po', id] });
+      queryClient.invalidateQueries({ queryKey: ['po-email-status', id] });
     },
+  });
+}
+
+/**
+ * Hook to send PO email with custom data
+ */
+export function useSendPOEmailWithData() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: ({ id, emailData }: { id: string; emailData: POEmailFormData }) => 
+      POService.sendPOEmailWithData(id, emailData),
+    onSuccess: (_, { id }) => {
+      // Invalidate PO data to refetch updated status
+      queryClient.invalidateQueries({ queryKey: ['po', id] });
+      queryClient.invalidateQueries({ queryKey: ['po-email-status', id] });
+    },
+  });
+}
+
+/**
+ * Hook to fetch PO email status
+ */
+export function usePOEmailStatus(id: string) {
+  return useQuery({
+    queryKey: ['po-email-status', id],
+    queryFn: () => POService.getPOEmailStatus(id),
+    enabled: !!id,
+    staleTime: 1 * 60 * 1000, // 1 minute
   });
 }
 
