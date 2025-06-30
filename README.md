@@ -33,6 +33,17 @@
 - **Permission Control** แสดง/ซ่อนตามสิทธิ์ผู้ใช้
 - **Responsive Design** รองรับทั้ง desktop และ mobile
 
+### ✅ ระบบ Tracking Vendor Acknowledge (Task 5)
+- **สถานะการรับทราบ** แสดงสถานะ: ยังไม่ส่ง, รอรับทราบ, รับทราบแล้ว, ปฏิเสธ
+- **ประวัติการส่งอีเมล** แสดงวันเวลาส่ง, ผู้ส่ง, จำนวนครั้งที่ส่ง
+- **ข้อมูล Vendor** แสดงชื่อ vendor และอีเมลที่ส่งไป
+- **Timeline การรับทราบ** วันเวลาที่ vendor กดยืนยัน/ปฏิเสธ พร้อมเหตุผล
+- **ปุ่ม Action ตามสิทธิ์** ส่งอีเมลซ้ำ, คัดลอกลิงก์ยืนยัน
+- **Real-time Updates** อัปเดตสถานะแบบอัตโนมัติหรือ manual refresh
+- **Error Handling** แสดงข้อผิดพลาดการส่งอีเมลล่าสุด
+- **Responsive Design** รองรับ desktop และ mobile
+- **Permission Control** แสดง/ซ่อนตามสิทธิ์ของ user role
+
 ### 🎨 UI/UX Design
 - **Material-UI v7** สำหรับ component library
 - **Responsive Design** รองรับ desktop และ mobile
@@ -65,11 +76,13 @@
 │   ├── providers.tsx        # React Query & Theme providers
 │   └── po/[id]/             # PO routes
 │       ├── edit/page.tsx    # PO Edit page
-│       └── send-email/page.tsx  # PO Email Form page
+│       ├── send-email/page.tsx  # PO Email Form page
+│       └── acknowledge-status/page.tsx  # PO Acknowledge Status page
 ├── components/              # React components
 │   ├── po/                 # PO-related components
 │   │   ├── POEditPreview.tsx    # Main edit/preview component
-│   │   └── POEmailForm.tsx      # Email form component
+│   │   ├── POEmailForm.tsx      # Email form component
+│   │   └── POAcknowledgeStatus.tsx  # Vendor acknowledge tracking
 │   └── ui/                 # Reusable UI components
 │       ├── States.tsx      # Loading/Error/Empty states
 │       └── ConfirmDialog.tsx    # Confirmation dialog
@@ -84,7 +97,8 @@
 │       └── permissions.ts  # Role-based permissions
 ├── __tests__/             # Test files
 │   ├── POEditPreview.test.tsx
-│   └── POEmailForm.test.tsx
+│   ├── POEmailForm.test.tsx
+│   └── POAcknowledgeStatus.test.tsx
 └── public/                # Static assets
 ```
 
@@ -116,17 +130,20 @@ npm run dev
 - `/` - หน้าแรก
 - `/po/[id]/edit` - หน้าแก้ไข/ดู PO
 - `/po/[id]/send-email` - หน้าส่งอีเมล PO
+- `/po/[id]/acknowledge-status` - หน้าติดตาม vendor acknowledge
 
 ### Example URLs
 ```
-http://localhost:3000/po/po-001/edit        # แก้ไข PO
-http://localhost:3000/po/po-001/send-email  # ส่งอีเมล PO
+http://localhost:3000/po/po-001/edit              # แก้ไข PO
+http://localhost:3000/po/po-001/send-email        # ส่งอีเมล PO
+http://localhost:3000/po/po-001/acknowledge-status # ติดตาม vendor acknowledge
 ```
 
 ### การใช้งาน
 1. **หน้าแก้ไข PO**: แสดงข้อมูล PO พร้อมปุ่มแก้ไข และส่งอีเมล
 2. **หน้าส่งอีเมล**: ฟอร์มส่งอีเมลแบบละเอียด พร้อมการตั้งค่าผู้รับและข้อความ
-3. **การสลับระหว่างหน้า**: ใช้ปุ่ม "ส่งอีเมล (แบบละเอียด)" จากหน้าแก้ไข
+3. **หน้าติดตาม Vendor Acknowledge**: แสดงสถานะการรับทราบ PO ของ vendor พร้อมประวัติและการดำเนินการ
+4. **การสลับระหว่างหน้า**: ใช้ปุ่ม "ส่งอีเมล (แบบละเอียด)" หรือ "ติดตาม Vendor Acknowledge" จากหน้าแก้ไข
 
 ### Available Scripts
 
@@ -155,6 +172,16 @@ npm run test:ci     # Run tests with coverage
 3. **ทดสอบการแก้ไข**: คลิกปุ่ม "แก้ไข" (สำหรับ role ที่มีสิทธิ์)
 4. **บันทึกข้อมูล**: แก้ไขข้อมูลและคลิก "บันทึก"
 5. **ส่งอีเมล**: คลิกปุ่ม "ส่งอีเมล" (สำหรับ PO ที่อนุมัติแล้ว)
+6. **ติดตาม Vendor Acknowledge**: คลิกปุ่ม "ติดตาม Vendor Acknowledge" เพื่อดูสถานะการรับทราบ
+
+### ตัวอย่างการใช้งาน Vendor Acknowledge Tracking
+
+1. **เข้าหน้าติดตาม**: ไปที่ `/po/[id]/acknowledge-status`
+2. **ดูสถานะปัจจุบัน**: ตรวจสอบสถานะการรับทราบของ vendor
+3. **ดูประวัติการส่ง**: ดูข้อมูลการส่งอีเมลและการตอบสนองของ vendor
+4. **ส่งอีเมลซ้ำ**: (สำหรับ Admin/MaterialControl) กดปุ่ม "ส่งอีเมลซ้ำ" หากต้องการ
+5. **คัดลอกลิงก์**: กดปุ่ม "คัดลอกลิงก์ยืนยัน" เพื่อแชร์ลิงก์ให้ vendor
+6. **รีเฟรชข้อมูล**: กดปุ่ม refresh เพื่ออัปเดตสถานะล่าสุด
 
 ### Role-based Testing
 
@@ -217,6 +244,10 @@ Component จะเรียก API ตาม endpoint ที่กำหนด�
 - `GET /po/:id` - ดึงข้อมูล PO
 - `PATCH /po/:id` - อัปเดต PO
 - `POST /po/:id/send-email` - ส่งอีเมล PO
+- `GET /po/:id/email-status` - ดึงสถานะการส่งอีเมล
+- `GET /po/:id/acknowledge-status` - ดึงสถานะการรับทราบ vendor
+- `POST /po/:id/resend-email` - ส่งอีเมลซ้ำ
+- `GET /po/:id/acknowledge-link` - ดึงลิงก์ยืนยันสำหรับ vendor
 
 ## 🚧 Development Notes
 
@@ -264,12 +295,13 @@ Component จะเรียก API ตาม endpoint ที่กำหนด�
 - [x] Role-based permissions
 - [x] Responsive design
 - [x] Basic testing
+- [x] Advanced email form (Task 4)
+- [x] Vendor acknowledge tracking (Task 5)
 
 ### Phase 2 (Planned)
 - [ ] PO List page
 - [ ] Advanced search & filtering
 - [ ] Audit log display
-- [ ] Email tracking
 - [ ] Print functionality
 
 ### Phase 3 (Future)

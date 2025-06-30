@@ -15,6 +15,9 @@ export function getRolePermissions(role: UserRole): RolePermissions {
         canSave: true,
         canApprove: true,
         canCancel: true,
+        canViewAcknowledgeStatus: true,
+        canResendEmail: true,
+        canCopyAcknowledgeLink: true,
         maskedFields: []
       };
 
@@ -28,6 +31,9 @@ export function getRolePermissions(role: UserRole): RolePermissions {
         canSave: true,
         canApprove: false,
         canCancel: false,
+        canViewAcknowledgeStatus: true,
+        canResendEmail: true,
+        canCopyAcknowledgeLink: true,
         maskedFields: []
       };
 
@@ -41,6 +47,9 @@ export function getRolePermissions(role: UserRole): RolePermissions {
         canSave: true,
         canApprove: false,
         canCancel: false,
+        canViewAcknowledgeStatus: true,
+        canResendEmail: false,
+        canCopyAcknowledgeLink: false,
         maskedFields: ['unitPrice', 'totalPrice', 'totalAmount'] // Mask price info
       };
 
@@ -54,6 +63,9 @@ export function getRolePermissions(role: UserRole): RolePermissions {
         canSave: false,
         canApprove: false,
         canCancel: false,
+        canViewAcknowledgeStatus: false, // Vendors shouldn't see internal tracking
+        canResendEmail: false,
+        canCopyAcknowledgeLink: false,
         maskedFields: ['unitPrice', 'totalPrice', 'totalAmount', 'createdBy']
       };
 
@@ -67,6 +79,9 @@ export function getRolePermissions(role: UserRole): RolePermissions {
         canSave: false,
         canApprove: false,
         canCancel: false,
+        canViewAcknowledgeStatus: false,
+        canResendEmail: false,
+        canCopyAcknowledgeLink: false,
         maskedFields: []
       };
   }
