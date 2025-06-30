@@ -9,7 +9,6 @@ import {
   Chip,
   List,
   ListItem,
-  ListItemText,
   Avatar,
   useTheme,
   useMediaQuery,
@@ -99,7 +98,7 @@ export function AuditLog({ auditLog, isLoading, error }: AuditLogProps) {
     );
   };
 
-  const formatMetadata = (metadata: any) => {
+  const formatMetadata = (metadata: Record<string, unknown>) => {
     if (!metadata) return null;
 
     return Object.entries(metadata)
@@ -130,7 +129,7 @@ export function AuditLog({ auditLog, isLoading, error }: AuditLogProps) {
       </Typography>
 
       <List>
-        {auditLog.map((entry, index) => (
+        {auditLog.map((entry) => (
           <ListItem key={entry.id} sx={{ px: 0 }}>
             <Card sx={{ width: '100%' }}>
               <CardContent>

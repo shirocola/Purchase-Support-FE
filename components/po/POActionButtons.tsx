@@ -21,7 +21,6 @@ import {
 import { RolePermissions } from '@/lib/types/po';
 
 interface POActionButtonsProps {
-  poId: string;
   permissions: RolePermissions;
   onSendEmail: () => void;
   onAcknowledge: () => void;
@@ -30,7 +29,6 @@ interface POActionButtonsProps {
 }
 
 export function POActionButtons({
-  poId,
   permissions,
   onSendEmail,
   onAcknowledge,

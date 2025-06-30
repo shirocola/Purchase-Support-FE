@@ -1,5 +1,5 @@
 // Mock data for testing and development
-import { PurchaseOrder, AuditLogEntry, POStatus, UserRole, RolePermissions } from './types/po';
+import { PurchaseOrder, AuditLogEntry, POStatus, RolePermissions } from './types/po';
 
 export const mockPO: PurchaseOrder = {
   id: 'po-001',
