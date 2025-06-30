@@ -1,0 +1,220 @@
+// Mock data for testing and development
+import { PurchaseOrder, AuditLogEntry, POStatus, UserRole, RolePermissions } from './types/po';
+
+export const mockPO: PurchaseOrder = {
+  id: 'po-001',
+  poNumber: 'PO-001',
+  title: 'Office Supplies for Q1',
+  status: POStatus.SENT,
+  vendor: {
+    id: 'vendor-001',
+    name: 'ABC Supplies Co., Ltd.',
+    email: 'contact@abcsupplies.com',
+    contactPerson: 'John Smith',
+    phone: '+66-2-123-4567',
+    address: '123 Industrial Road, Bangkok 10400',
+  },
+  items: [
+    {
+      id: 'item-1',
+      productName: 'Steel Pipes',
+      description: 'High-grade steel pipes for construction',
+      quantity: 50,
+      unitPrice: 850,
+      totalPrice: 42500,
+      unit: 'meters',
+    },
+    {
+      id: 'item-2',
+      productName: 'Industrial Bolts',
+      description: 'Heavy-duty industrial bolts',
+      quantity: 200,
+      unitPrice: 125,
+      totalPrice: 25000,
+      unit: 'pcs',
+    },
+    {
+      id: 'item-3',
+      productName: 'Safety Equipment',
+      description: 'Personal protective equipment set',
+      quantity: 10,
+      unitPrice: 700,
+      totalPrice: 7000,
+      unit: 'sets',
+    },
+  ],
+  totalAmount: 74500,
+  currency: 'THB',
+  requestedDate: '2024-01-15T00:00:00Z',
+  requiredDate: '2024-02-01T00:00:00Z',
+  description: 'Office equipment for new branch',
+  remarks: 'Urgent delivery required. Please confirm delivery date within 24 hours.',
+  createdBy: 'user-001',
+  createdAt: '2024-01-01T08:00:00Z',
+  updatedAt: '2024-01-02T10:30:00Z',
+  emailSentAt: '2024-01-02T14:30:00Z',
+  // Additional fields for testing
+  currentStatus: {
+    status: POStatus.SENT,
+    timestamp: '2024-01-02T14:30:00Z',
+    updatedBy: 'system',
+  },
+  statusHistory: [
+    {
+      status: POStatus.DRAFT,
+      timestamp: '2024-01-01T08:00:00Z',
+      updatedBy: 'john.smith',
+      notes: 'Initial draft created',
+    },
+    {
+      status: POStatus.PENDING_APPROVAL,
+      timestamp: '2024-01-01T16:00:00Z',
+      updatedBy: 'john.smith',
+      notes: 'Submitted for approval',
+    },
+    {
+      status: POStatus.APPROVED,
+      timestamp: '2024-01-02T09:00:00Z',
+      updatedBy: 'manager.doe',
+      notes: 'Approved by department manager',
+    },
+    {
+      status: POStatus.SENT,
+      timestamp: '2024-01-02T14:30:00Z',
+      updatedBy: 'system',
+      notes: 'Sent to vendor via email',
+    },
+  ],
+  attachments: [
+    { name: 'technical-specs.pdf', size: '2.1 MB' },
+    { name: 'delivery-instructions.pdf', size: '1.3 MB' },
+  ],
+};
+
+export const mockAuditLog: AuditLogEntry[] = [
+  {
+    id: 'audit-001',
+    action: 'CREATE',
+    fieldName: undefined,
+    oldValue: undefined,
+    newValue: undefined,
+    timestamp: '2024-01-01T08:00:00Z',
+    userId: 'user-001',
+    userName: 'John Smith',
+    metadata: {
+      description: 'Purchase Order created',
+    },
+  },
+  {
+    id: 'audit-002',
+    action: 'UPDATE',
+    fieldName: 'remarks',
+    oldValue: '',
+    newValue: 'Added delivery notes',
+    timestamp: '2024-01-01T10:15:00Z',
+    userId: 'user-001',
+    userName: 'John Smith',
+    metadata: {
+      description: 'Added delivery notes',
+    },
+  },
+  {
+    id: 'audit-003',
+    action: 'STATUS_CHANGE',
+    fieldName: 'status',
+    oldValue: 'draft',
+    newValue: 'pending',
+    timestamp: '2024-01-01T16:00:00Z',
+    userId: 'user-001',
+    userName: 'John Smith',
+    metadata: {
+      description: 'Status changed from draft to pending',
+    },
+  },
+  {
+    id: 'audit-004',
+    action: 'STATUS_CHANGE',
+    fieldName: 'status',
+    oldValue: 'pending',
+    newValue: 'approved',
+    timestamp: '2024-01-02T09:00:00Z',
+    userId: 'manager-001',
+    userName: 'Jane Doe',
+    metadata: {
+      description: 'Status changed from pending to approved',
+    },
+  },
+  {
+    id: 'audit-005',
+    action: 'EMAIL_SENT',
+    fieldName: undefined,
+    oldValue: undefined,
+    newValue: undefined,
+    timestamp: '2024-01-02T14:30:00Z',
+    userId: 'system',
+    userName: 'System',
+    metadata: {
+      description: 'PO sent to vendor via email',
+      recipientEmail: 'contact@abcsupplies.com',
+    },
+  },
+];
+
+export const mockPermissions: RolePermissions = {
+  canEditBasicInfo: true,
+  canEditItems: true,
+  canEditVendor: true,
+  canEditRemarks: true,
+  canSendEmail: true,
+  canSave: true,
+  canApprove: true,
+  canCancel: true,
+  canViewAcknowledgeStatus: true,
+  canResendEmail: true,
+  canCopyAcknowledgeLink: true,
+  maskedFields: [],
+};
+
+// Status history for timeline display
+export const mockStatusHistory = [
+  {
+    status: POStatus.DRAFT,
+    timestamp: '2024-01-01T08:00:00Z',
+    updatedBy: 'john.smith',
+    userName: 'John Smith',
+    notes: 'Initial draft created',
+    completed: true,
+  },
+  {
+    status: POStatus.PENDING_APPROVAL,
+    timestamp: '2024-01-01T16:00:00Z',
+    updatedBy: 'john.smith',
+    userName: 'John Smith',
+    notes: 'Submitted for approval',
+    completed: true,
+  },
+  {
+    status: POStatus.APPROVED,
+    timestamp: '2024-01-02T09:00:00Z',
+    updatedBy: 'manager.doe',
+    userName: 'Jane Doe',
+    notes: 'Approved by department manager',
+    completed: true,
+  },
+  {
+    status: POStatus.SENT,
+    timestamp: '2024-01-02T14:30:00Z',
+    updatedBy: 'system',
+    userName: 'System',
+    notes: 'Sent to vendor via email',
+    completed: true,
+  },
+  {
+    status: POStatus.ACKNOWLEDGED,
+    timestamp: undefined,
+    updatedBy: undefined,
+    userName: undefined,
+    notes: 'Waiting for vendor acknowledgment',
+    completed: false,
+  },
+];
