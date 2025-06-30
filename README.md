@@ -22,6 +22,17 @@
 - Validation ทุก field พร้อม error handling
 - Loading, error, empty states ครบถ้วน
 
+### ✅ ฟอร์มส่งอีเมล PO (Task 4)
+- **ฟอร์มส่งอีเมลแบบละเอียด** พร้อมการปรับแต่งผู้รับและข้อความ
+- **หลายผู้รับอีเมล** สามารถเพิ่ม/ลดอีเมลผู้รับได้
+- **ข้อความที่กำหนดเอง** แก้ไขข้อความในอีเมลได้
+- **Preview ก่อนส่ง** ดูตัวอย่างอีเมลก่อนส่ง
+- **สถานะการส่งอีเมล** แสดงประวัติการส่ง, วันเวลา, สถานะ error
+- **การป้องกันส่งซ้ำ** Confirmation dialog และ loading states
+- **Form Validation** ตรวจสอบรูปแบบอีเมลและข้อมูลที่จำเป็น
+- **Permission Control** แสดง/ซ่อนตามสิทธิ์ผู้ใช้
+- **Responsive Design** รองรับทั้ง desktop และ mobile
+
 ### 🎨 UI/UX Design
 - **Material-UI v7** สำหรับ component library
 - **Responsive Design** รองรับ desktop และ mobile
@@ -48,22 +59,33 @@
 ## 📁 Project Structure
 
 ```
-├── app/                    # Next.js App Router
-│   ├── page.tsx           # หน้าแรก
-│   ├── layout.tsx         # Root layout
-│   ├── providers.tsx      # React Query & Theme providers
-│   └── po/[id]/edit/      # PO Edit page
-├── components/            # React components
-│   ├── po/               # PO-related components
-│   │   └── POEditPreview.tsx
-│   └── ui/               # Reusable UI components
-├── lib/                  # Utilities & business logic
-│   ├── api/             # API service layer
-│   ├── hooks/           # React Query hooks
-│   ├── types/           # TypeScript types
-│   └── utils/           # Utility functions
-├── __tests__/           # Test files
-└── public/              # Static assets
+├── app/                      # Next.js App Router
+│   ├── page.tsx             # หน้าแรก
+│   ├── layout.tsx           # Root layout
+│   ├── providers.tsx        # React Query & Theme providers
+│   └── po/[id]/             # PO routes
+│       ├── edit/page.tsx    # PO Edit page
+│       └── send-email/page.tsx  # PO Email Form page
+├── components/              # React components
+│   ├── po/                 # PO-related components
+│   │   ├── POEditPreview.tsx    # Main edit/preview component
+│   │   └── POEmailForm.tsx      # Email form component
+│   └── ui/                 # Reusable UI components
+│       ├── States.tsx      # Loading/Error/Empty states
+│       └── ConfirmDialog.tsx    # Confirmation dialog
+├── lib/                    # Utilities & business logic
+│   ├── api/               # API service layer
+│   │   └── po.ts          # PO API services
+│   ├── hooks/             # React Query hooks
+│   │   └── usePO.ts       # PO-related hooks
+│   ├── types/             # TypeScript types
+│   │   └── po.ts          # PO type definitions
+│   └── utils/             # Utility functions
+│       └── permissions.ts  # Role-based permissions
+├── __tests__/             # Test files
+│   ├── POEditPreview.test.tsx
+│   └── POEmailForm.test.tsx
+└── public/                # Static assets
 ```
 
 ## 🚀 Quick Start
@@ -87,6 +109,24 @@ npm run dev
 ```
 
 เปิด [http://localhost:3000](http://localhost:3000) ในบราวเซอร์
+
+## 🗺️ Routes & Navigation
+
+### Main Routes
+- `/` - หน้าแรก
+- `/po/[id]/edit` - หน้าแก้ไข/ดู PO
+- `/po/[id]/send-email` - หน้าส่งอีเมล PO
+
+### Example URLs
+```
+http://localhost:3000/po/po-001/edit        # แก้ไข PO
+http://localhost:3000/po/po-001/send-email  # ส่งอีเมล PO
+```
+
+### การใช้งาน
+1. **หน้าแก้ไข PO**: แสดงข้อมูล PO พร้อมปุ่มแก้ไข และส่งอีเมล
+2. **หน้าส่งอีเมล**: ฟอร์มส่งอีเมลแบบละเอียด พร้อมการตั้งค่าผู้รับและข้อความ
+3. **การสลับระหว่างหน้า**: ใช้ปุ่ม "ส่งอีเมล (แบบละเอียด)" จากหน้าแก้ไข
 
 ### Available Scripts
 

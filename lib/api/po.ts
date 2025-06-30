@@ -1,5 +1,5 @@
 import axios, { AxiosResponse } from 'axios';
-import { PurchaseOrder, APIResponse, POEditFormData } from '@/lib/types/po';
+import { PurchaseOrder, APIResponse, POEditFormData, POEmailFormData, POEmailStatus } from '@/lib/types/po';
 
 // Configure axios instance
 const api = axios.create({
@@ -60,6 +60,27 @@ export class POService {
     if (!response.data.success) {
       throw new Error(response.data.message || 'Failed to send email');
     }
+  }
+
+  /**
+   * Send PO email with custom data
+   */
+  static async sendPOEmailWithData(id: string, emailData: POEmailFormData): Promise<void> {
+    const response: AxiosResponse<APIResponse<void>> = await api.post(`/po/${id}/send-email`, emailData);
+    if (!response.data.success) {
+      throw new Error(response.data.message || 'Failed to send email');
+    }
+  }
+
+  /**
+   * Get PO email status
+   */
+  static async getPOEmailStatus(id: string): Promise<POEmailStatus> {
+    const response: AxiosResponse<APIResponse<POEmailStatus>> = await api.get(`/po/${id}/email-status`);
+    if (!response.data.success) {
+      throw new Error(response.data.message || 'Failed to fetch email status');
+    }
+    return response.data.data!;
   }
 
   /**

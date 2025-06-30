@@ -118,3 +118,18 @@ export interface RolePermissions {
   canCancel: boolean;
   maskedFields: string[];
 }
+
+// Email form types
+export interface POEmailFormData {
+  recipientEmails: string[];
+  customMessage?: string;
+  includeAttachments: boolean;
+}
+
+export interface POEmailStatus {
+  isSent: boolean;
+  lastSentAt?: string;
+  lastSentBy?: string;
+  emailsSent: number;
+  lastError?: string;
+}

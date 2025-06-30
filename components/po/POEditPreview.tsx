@@ -228,22 +228,32 @@ export function POEditPreview({ poId, userRole, onBack }: POEditPreviewProps) {
           )}
 
           {permissions.canSendEmail && po.status === POStatus.APPROVED && (
-            <Button
-              variant="contained"
-              color="primary"
-              startIcon={<Email />}
-              onClick={() =>
-                setConfirmDialog({
-                  open: true,
-                  type: 'email',
-                  title: 'ยืนยันการส่งอีเมล',
-                  message: `คุณต้องการส่งอีเมล PO ให้กับ ${po.vendor.name} หรือไม่?`,
-                })
-              }
-              disabled={sendEmailMutation.isPending}
-            >
-              ส่งอีเมล
-            </Button>
+            <>
+              <Button
+                variant="contained"
+                color="primary"
+                startIcon={<Email />}
+                onClick={() =>
+                  setConfirmDialog({
+                    open: true,
+                    type: 'email',
+                    title: 'ยืนยันการส่งอีเมล',
+                    message: `คุณต้องการส่งอีเมล PO ให้กับ ${po.vendor.name} หรือไม่?`,
+                  })
+                }
+                disabled={sendEmailMutation.isPending}
+              >
+                ส่งอีเมล (ง่าย)
+              </Button>
+              <Button
+                variant="outlined"
+                color="primary"
+                startIcon={<Email />}
+                onClick={() => router.push(`/po/${poId}/send-email`)}
+              >
+                ส่งอีเมล (แบบละเอียด)
+              </Button>
+            </>
           )}
 
           <Button
