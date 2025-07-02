@@ -1,5 +1,5 @@
 // Mock data for testing and development
-import { PurchaseOrder, AuditLogEntry, POStatus, RolePermissions } from './types/po';
+import { PurchaseOrder, AuditLogEntry, POStatus, RolePermissions, Material } from './types/po';
 
 export const mockPO: PurchaseOrder = {
   id: 'po-001',
@@ -53,42 +53,6 @@ export const mockPO: PurchaseOrder = {
   createdAt: '2024-01-01T08:00:00Z',
   updatedAt: '2024-01-02T10:30:00Z',
   emailSentAt: '2024-01-02T14:30:00Z',
-  // Additional fields for testing
-  currentStatus: {
-    status: POStatus.SENT,
-    timestamp: '2024-01-02T14:30:00Z',
-    updatedBy: 'system',
-  },
-  statusHistory: [
-    {
-      status: POStatus.DRAFT,
-      timestamp: '2024-01-01T08:00:00Z',
-      updatedBy: 'john.smith',
-      notes: 'Initial draft created',
-    },
-    {
-      status: POStatus.PENDING_APPROVAL,
-      timestamp: '2024-01-01T16:00:00Z',
-      updatedBy: 'john.smith',
-      notes: 'Submitted for approval',
-    },
-    {
-      status: POStatus.APPROVED,
-      timestamp: '2024-01-02T09:00:00Z',
-      updatedBy: 'manager.doe',
-      notes: 'Approved by department manager',
-    },
-    {
-      status: POStatus.SENT,
-      timestamp: '2024-01-02T14:30:00Z',
-      updatedBy: 'system',
-      notes: 'Sent to vendor via email',
-    },
-  ],
-  attachments: [
-    { name: 'technical-specs.pdf', size: '2.1 MB' },
-    { name: 'delivery-instructions.pdf', size: '1.3 MB' },
-  ],
 };
 
 export const mockAuditLog: AuditLogEntry[] = [
@@ -339,4 +303,185 @@ export const mockUsers = [
   { id: 'jane.doe', name: 'Jane Doe' },
   { id: 'bob.wilson', name: 'Bob Wilson' },
   { id: 'alice.johnson', name: 'Alice Johnson' },
+];
+
+// Mock materials for material management
+export const mockMaterials: Material[] = [
+  {
+    id: 'mat-001',
+    materialCode: 'STL-001',
+    materialName: 'High-Grade Steel Pipe A36',
+    category: 'Steel Materials',
+    description: 'Standard structural steel pipe for construction',
+    isConfidential: false,
+    aliasName: undefined,
+    createdAt: '2024-01-01T00:00:00Z',
+    updatedAt: '2024-01-01T00:00:00Z',
+    createdBy: 'system',
+    updatedBy: 'system',
+  },
+  {
+    id: 'mat-002',
+    materialCode: 'CHM-S001',
+    materialName: 'Advanced Chemical Compound X-47',
+    category: 'Chemical Materials',
+    description: 'Specialized chemical compound for manufacturing',
+    isConfidential: true,
+    aliasName: 'Standard Chemical Mix',
+    createdAt: '2024-01-02T00:00:00Z',
+    updatedAt: '2024-01-10T00:00:00Z',
+    createdBy: 'system',
+    updatedBy: 'material.control',
+  },
+  {
+    id: 'mat-003',
+    materialCode: 'ELC-001',
+    materialName: 'Standard Electronic Components',
+    category: 'Electronics',
+    description: 'Basic electronic components for assembly',
+    isConfidential: false,
+    aliasName: undefined,
+    createdAt: '2024-01-03T00:00:00Z',
+    updatedAt: '2024-01-03T00:00:00Z',
+    createdBy: 'system',
+    updatedBy: 'system',
+  },
+  {
+    id: 'mat-004',
+    materialCode: 'MIL-S002',
+    materialName: 'Military-Grade Armor Plating',
+    category: 'Defense Materials',
+    description: 'High-security armor plating material',
+    isConfidential: true,
+    aliasName: 'Heavy Metal Sheet',
+    createdAt: '2024-01-04T00:00:00Z',
+    updatedAt: '2024-01-15T00:00:00Z',
+    createdBy: 'system',
+    updatedBy: 'material.control',
+  },
+  {
+    id: 'mat-005',
+    materialCode: 'PLT-001',
+    materialName: 'Industrial Plastic Polymer',
+    category: 'Plastic Materials',
+    description: 'Standard industrial plastic for manufacturing',
+    isConfidential: false,
+    aliasName: undefined,
+    createdAt: '2024-01-05T00:00:00Z',
+    updatedAt: '2024-01-05T00:00:00Z',
+    createdBy: 'system',
+    updatedBy: 'system',
+  },
+  {
+    id: 'mat-006',
+    materialCode: 'RAR-E001',
+    materialName: 'Rare Earth Element Neodymium',
+    category: 'Rare Earth Materials',
+    description: 'High-purity neodymium for specialized applications',
+    isConfidential: true,
+    aliasName: 'Special Earth Material',
+    createdAt: '2024-01-06T00:00:00Z',
+    updatedAt: '2024-01-20T00:00:00Z',
+    createdBy: 'system',
+    updatedBy: 'material.control',
+  },
+  {
+    id: 'mat-007',
+    materialCode: 'TXT-001',
+    materialName: 'Cotton Fabric Standard',
+    category: 'Textile Materials',
+    description: 'Standard cotton fabric for textile production',
+    isConfidential: false,
+    aliasName: undefined,
+    createdAt: '2024-01-07T00:00:00Z',
+    updatedAt: '2024-01-07T00:00:00Z',
+    createdBy: 'system',
+    updatedBy: 'system',
+  },
+  {
+    id: 'mat-008',
+    materialCode: 'BIO-S001',
+    materialName: 'Classified Biological Agent B-12',
+    category: 'Biological Materials',
+    description: 'Restricted biological material for research',
+    isConfidential: true,
+    aliasName: 'Research Sample Material',
+    createdAt: '2024-01-08T00:00:00Z',
+    updatedAt: '2024-01-25T00:00:00Z',
+    createdBy: 'system',
+    updatedBy: 'material.control',
+  },
+  {
+    id: 'mat-009',
+    materialCode: 'CER-001',
+    materialName: 'Advanced Ceramic Composite',
+    category: 'Ceramic Materials',
+    description: 'High-temperature resistant ceramic material',
+    isConfidential: false,
+    aliasName: undefined,
+    createdAt: '2024-01-09T00:00:00Z',
+    updatedAt: '2024-01-09T00:00:00Z',
+    createdBy: 'system',
+    updatedBy: 'system',
+  },
+  {
+    id: 'mat-010',
+    materialCode: 'NUC-S001',
+    materialName: 'Nuclear-Grade Uranium Compound',
+    category: 'Nuclear Materials',
+    description: 'Enriched uranium compound for nuclear applications',
+    isConfidential: true,
+    aliasName: 'Energy Source Material',
+    createdAt: '2024-01-10T00:00:00Z',
+    updatedAt: '2024-01-30T00:00:00Z',
+    createdBy: 'system',
+    updatedBy: 'material.control',
+  },
+];
+
+// Mock material categories for filter dropdown
+export const mockMaterialCategories = [
+  'Steel Materials',
+  'Chemical Materials',
+  'Electronics',
+  'Defense Materials',
+  'Plastic Materials',
+  'Rare Earth Materials',
+  'Textile Materials',
+  'Biological Materials',
+  'Ceramic Materials',
+  'Nuclear Materials',
+];
+
+// Additional mock data for testing - separate from main PO object
+export const mockPOStatusHistory = [
+  {
+    status: POStatus.DRAFT,
+    timestamp: '2024-01-01T08:00:00Z',
+    updatedBy: 'john.smith',
+    notes: 'Initial draft created',
+  },
+  {
+    status: POStatus.PENDING_APPROVAL,
+    timestamp: '2024-01-01T16:00:00Z',
+    updatedBy: 'john.smith',
+    notes: 'Submitted for approval',
+  },
+  {
+    status: POStatus.APPROVED,
+    timestamp: '2024-01-02T09:00:00Z',
+    updatedBy: 'manager.doe',
+    notes: 'Approved by department manager',
+  },
+  {
+    status: POStatus.SENT,
+    timestamp: '2024-01-02T14:30:00Z',
+    updatedBy: 'system',
+    notes: 'Sent to vendor via email',
+  },
+];
+
+export const mockPOAttachments = [
+  { name: 'technical-specs.pdf', size: '2.1 MB' },
+  { name: 'delivery-instructions.pdf', size: '1.3 MB' },
 ];

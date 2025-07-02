@@ -246,9 +246,39 @@ export default function LoginPage() {
             </Button>
             
             {isMockAuthEnabled && (
-              <Typography variant="body2" color="text.secondary" textAlign="center" sx={{ mt: 1 }}>
-                ระบบจะใช้รหัสทดสอบ: {testAuthCode}
-              </Typography>
+              <>
+                <Typography variant="body2" color="text.secondary" textAlign="center" sx={{ mt: 1 }}>
+                  ระบบจะใช้รหัสทดสอบ: {testAuthCode}
+                </Typography>
+                
+                {/* Role-based routing information */}
+                <Box sx={{ mt: 3, p: 2, bgcolor: 'background.default', borderRadius: 1 }}>
+                  <Typography variant="subtitle2" color="primary" gutterBottom textAlign="center">
+                    🎯 การเปลี่ยนเส้นทางตามบทบาท
+                  </Typography>
+                  <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
+                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                      <Chip label="AppUser" size="small" color="info" />
+                      <Typography variant="caption">→ หน้ารายการ PO (/po/list)</Typography>
+                    </Box>
+                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                      <Chip label="MaterialControl" size="small" color="success" />
+                      <Typography variant="caption">→ หน้าจัดการวัสดุ (/po/material)</Typography>
+                    </Box>
+                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                      <Chip label="Admin" size="small" color="error" />
+                      <Typography variant="caption">→ หน้าแรก (/)</Typography>
+                    </Box>
+                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                      <Chip label="Vendor" size="small" color="warning" />
+                      <Typography variant="caption">→ Vendor Portal</Typography>
+                    </Box>
+                  </Box>
+                  <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mt: 1, textAlign: 'center' }}>
+                    💡 ระบบจะป้องกันการเข้าถึงหน้าที่ไม่มีสิทธิ์อัตโนมัติ
+                  </Typography>
+                </Box>
+              </>
             )}
           </Box>
           

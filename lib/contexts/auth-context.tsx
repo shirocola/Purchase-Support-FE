@@ -1,8 +1,10 @@
 'use client';
 
 import React, { createContext, useContext, useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 import { UserRole, User } from '@/lib/types/po';
 import AuthService, { LoginRequest } from '@/lib/api/auth';
+import { getDefaultRouteForRole } from '@/lib/utils/role-routing';
 
 interface AuthContextType {
   user: User | null;
@@ -77,6 +79,8 @@ export function AuthProvider({
   defaultRole = UserRole.MATERIAL_CONTROL,
   enableMockAuth
 }: AuthProviderProps) {
+  const router = useRouter();
+  
   // Check environment variable if enableMockAuth is not explicitly set
   const shouldUseMockAuth = enableMockAuth ?? (process.env.NEXT_PUBLIC_ENABLE_MOCK_AUTH === 'true');
   
@@ -161,6 +165,10 @@ export function AuthProvider({
             localStorage.setItem('authToken', 'mock-token');
             localStorage.setItem('userData', JSON.stringify(foundUser));
           }
+          
+          // Automatic role-based routing after successful login
+          const defaultRoute = getDefaultRouteForRole(foundUser.role);
+          router.push(defaultRoute);
         } else {
           throw new Error('Invalid credentials');
         }
@@ -168,6 +176,10 @@ export function AuthProvider({
         // Real API login - tokens and user data are stored by AuthService
         const loginResponse = await AuthService.login(credentials);
         setUser(loginResponse.user);
+        
+        // Automatic role-based routing after successful login
+        const defaultRoute = getDefaultRouteForRole(loginResponse.user.role);
+        router.push(defaultRoute);
       }
     } catch (error) {
       console.error('Login failed:', error);
@@ -224,6 +236,22 @@ export function AuthProvider({
       throw error;
     }
   };
+
+  // Redirect effect: Navigate to default route on login/logout
+  useEffect(() => {
+    if (isHydrated && !isLoading) {
+      if (user) {
+        // On login, redirect to user's default route
+        const defaultRoute = getDefaultRouteForRole(user.role);
+        console.log('Navigating to default route:', defaultRoute);
+        router.push(defaultRoute);
+      } else {
+        // On logout, redirect to login page (or any public route)
+        console.log('User logged out, redirecting to login');
+        router.push('/login');
+      }
+    }
+  }, [isHydrated, isLoading, user, router]);
 
   const value = {
     user,
