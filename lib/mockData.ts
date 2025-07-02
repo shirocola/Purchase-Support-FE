@@ -212,6 +212,7 @@ export const mockPOList: PurchaseOrder[] = [
     },
     createdAt: '2024-01-10T00:00:00Z',
     updatedAt: '2024-01-12T14:20:00Z',
+    emailSentAt: '2024-01-11T09:30:00Z',
   },
   {
     ...mockPO,
@@ -230,6 +231,7 @@ export const mockPOList: PurchaseOrder[] = [
     },
     createdAt: '2024-01-08T00:00:00Z',
     updatedAt: '2024-01-09T16:45:00Z',
+    emailSentAt: '2024-01-09T11:20:00Z',
   },
   {
     ...mockPO,

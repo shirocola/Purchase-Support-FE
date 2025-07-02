@@ -30,6 +30,7 @@ import {
   TrackChanges as TrackIcon,
   Sort as SortIcon,
   Add as AddIcon,
+  CheckCircle as CheckIcon,
 } from '@mui/icons-material';
 
 import { PurchaseOrder, POStatus, UserRole, POListParams, POListSortOptions } from '@/lib/types/po';
@@ -38,6 +39,7 @@ import { useAuth } from '@/lib/contexts/auth-context';
 import { getRolePermissions } from '@/lib/utils/permissions';
 import { LoadingState, ErrorState, EmptyState } from '@/components/ui/States';
 import POFilter, { POFilterValues } from './POFilter';
+import POEmailDialog from './POEmailDialog';
 import { mockVendors, mockUsers } from '@/lib/mockData';
 
 interface POListProps {
@@ -75,6 +77,13 @@ export function POList({ className }: POListProps) {
     sortBy: 'createdAt',
     sortOrder: 'desc',
   });
+
+  // Email dialog state
+  const [emailDialogOpen, setEmailDialogOpen] = useState(false);
+  const [selectedPOForEmail, setSelectedPOForEmail] = useState<PurchaseOrder | null>(null);
+  
+  // Track sent emails (in real app, this would come from the API)
+  const [sentEmails, setSentEmails] = useState<Record<string, string>>({});
 
   // Get user permissions
   const permissions = useMemo(() => {
@@ -128,8 +137,21 @@ export function POList({ className }: POListProps) {
   }, [router]);
 
   const handleSendEmail = useCallback((po: PurchaseOrder) => {
-    router.push(`/po/${po.id}/send-email`);
-  }, [router]);
+    setSelectedPOForEmail(po);
+    setEmailDialogOpen(true);
+  }, []);
+
+  const handleEmailSendSuccess = useCallback((po: PurchaseOrder, sentAt: string) => {
+    // Update sent emails tracking
+    setSentEmails(prev => ({
+      ...prev,
+      [po.id]: sentAt
+    }));
+    
+    // In real app, you would also call API to update the PO status
+    // and refresh the data
+    console.log(`Email sent for PO ${po.poNumber} at ${sentAt}`);
+  }, []);
 
   const handleTrackAcknowledge = useCallback((po: PurchaseOrder) => {
     router.push(`/po/${po.id}/acknowledge-status`);
@@ -155,6 +177,16 @@ export function POList({ className }: POListProps) {
       day: '2-digit',
       month: '2-digit',
       year: 'numeric',
+    });
+  }, []);
+
+  const formatDateTime = useCallback((dateString: string) => {
+    return new Date(dateString).toLocaleDateString('th-TH', {
+      day: '2-digit',
+      month: '2-digit',
+      year: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit',
     });
   }, []);
 
@@ -284,6 +316,7 @@ export function POList({ className }: POListProps) {
                     <SortIcon fontSize="small" sx={{ ml: 0.5 }} />
                   </Box>
                 </TableCell>
+                <TableCell align="center">Sent?</TableCell>
                 <TableCell align="center">การดำเนินการ</TableCell>
               </TableRow>
             </TableHead>
@@ -335,6 +368,20 @@ export function POList({ className }: POListProps) {
                     </Typography>
                   </TableCell>
                   <TableCell align="center">
+                    {sentEmails[po.id] || po.emailSentAt ? (
+                      <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+                        <CheckIcon color="success" fontSize="small" />
+                        <Typography variant="caption" color="text.secondary">
+                          {formatDateTime(sentEmails[po.id] || po.emailSentAt!)}
+                        </Typography>
+                      </Box>
+                    ) : (
+                      <Typography variant="body2" color="text.secondary">
+                        -
+                      </Typography>
+                    )}
+                  </TableCell>
+                  <TableCell align="center">
                     <Stack direction="row" spacing={0.5} justifyContent="center">
                       <Tooltip title="ดูรายละเอียด">
                         <IconButton
@@ -370,6 +417,7 @@ export function POList({ className }: POListProps) {
                               e.stopPropagation();
                               handleSendEmail(po);
                             }}
+                            sx={{ color: 'primary.main' }}
                           >
                             <EmailIcon fontSize="small" />
                           </IconButton>
@@ -416,6 +464,17 @@ export function POList({ className }: POListProps) {
           }}
         />
       </Card>
+
+      {/* Email Dialog */}
+      <POEmailDialog
+        open={emailDialogOpen}
+        onClose={() => {
+          setEmailDialogOpen(false);
+          setSelectedPOForEmail(null);
+        }}
+        po={selectedPOForEmail}
+        onSendSuccess={handleEmailSendSuccess}
+      />
     </Box>
   );
 }

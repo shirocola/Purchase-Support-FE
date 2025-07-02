@@ -89,11 +89,20 @@ export default function Home() {
               การส่งอีเมล
             </Typography>
             <Typography variant="body2" color="text.secondary" sx={{ mb: 3 }}>
-              ส่งอีเมล PO ให้ vendor พร้อม tracking
+              ส่งอีเมล PO ให้ vendor พร้อม tracking ผ่านรายการ PO
             </Typography>
-            <Button variant="outlined" fullWidth disabled>
-              เร็วๆ นี้
-            </Button>
+            <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
+              <Link href="/email-demo" passHref>
+                <Button variant="contained" fullWidth>
+                  ทดสอบส่งอีเมล
+                </Button>
+              </Link>
+              <Link href="/po/list" passHref>
+                <Button variant="outlined" fullWidth size="small">
+                  ไปที่รายการ PO
+                </Button>
+              </Link>
+            </Box>
           </CardContent>
         </Card>
 
@@ -126,11 +135,13 @@ export default function Home() {
           <li>หน้า Preview & แก้ไข PO พร้อมระบบสิทธิ์ตามบทบาทผู้ใช้</li>
           <li>หน้ารายการ PO พร้อมการค้นหา กรอง และเรียงลำดับข้อมูล</li>
           <li>ระบบจัดการวัสดุและชื่อเทียบเท่าสำหรับวัสดุลับ</li>
-          <li>การแสดงข้อมูล PO ทั้งหมดที่จะส่งให้ vendor</li>
+          <li>การส่งอีเมล PO ให้ vendor พร้อมการตรวจสอบและแก้ไขข้อมูล TO/CC</li>
+          <li>ระบบติดตาม email ที่ส่งแล้วในคอลัมน์ "Sent?" พร้อมวันเวลา</li>
           <li>ระบบ validation และ error handling</li>
           <li>Responsive design รองรับ desktop และ mobile</li>
           <li>Loading และ error states</li>
           <li>ยืนยันการกระทำผ่าน confirmation dialog</li>
+          <li>Role-based access control และ automatic routing</li>
         </ul>
       </Box>
     </Container>

@@ -35,6 +35,7 @@ export function canAccessRoute(userRole: UserRole, route: string): boolean {
     '/po/[id]/send-email': [UserRole.MATERIAL_CONTROL, UserRole.ADMIN], // Only MaterialControl and Admin can send email
     '/po/[id]/acknowledge-status': [UserRole.MATERIAL_CONTROL, UserRole.ADMIN], // Only MaterialControl and Admin can view acknowledge status
     '/components-showcase': [UserRole.ADMIN], // Only Admin can access component showcase
+    '/email-demo': [UserRole.APP_USER, UserRole.MATERIAL_CONTROL, UserRole.ADMIN, UserRole.VENDOR], // Everyone can access email demo
     '/vendor/portal': [UserRole.VENDOR, UserRole.ADMIN], // Only Vendor and Admin can access vendor portal
     '/': [UserRole.APP_USER, UserRole.MATERIAL_CONTROL, UserRole.ADMIN, UserRole.VENDOR], // Everyone can access home
   };

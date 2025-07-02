@@ -28,6 +28,7 @@ const testRoutes = [
   { path: '/', label: 'หน้าแรก' },
   { path: '/po/list', label: 'รายการ PO' },
   { path: '/po/material', label: 'จัดการวัสดุ' },
+  { path: '/email-demo', label: 'ทดสอบส่งอีเมล' },
   { path: '/components-showcase', label: 'Component Showcase' },
   { path: '/vendor/portal', label: 'Vendor Portal' },
   { path: '/po/po-001/edit', label: 'แก้ไข PO' },
