@@ -20,6 +20,12 @@ interface LoginFormErrors {
   general?: string;
 }
 
+interface AuthResponse {
+  success: boolean;
+  authUrl?: string;
+  message?: string;
+}
+
 export default function LoginPage() {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
@@ -60,13 +66,28 @@ export default function LoginPage() {
     setErrors({});
     
     try {
-      // For AD authentication, redirect to backend AD auth endpoint
-      // This will initiate the AD OAuth flow
+      // Call backend to get Azure AD authentication URL
       const apiBaseUrl = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:3001/api';
-      const redirectUrl = `${apiBaseUrl}/auth/ad/login`;
+      const response = await fetch(`${apiBaseUrl}/auth/login`, {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
+      const data: AuthResponse = await response.json();
       
-      // Redirect to backend AD authentication
-      window.location.href = redirectUrl;
+      // Check if response contains authUrl
+      if (data.success && data.authUrl) {
+        // Redirect to Azure AD authentication URL
+        window.location.href = data.authUrl;
+      } else {
+        throw new Error(data.message || 'ไม่สามารถเชื่อมต่อกับ Azure AD ได้');
+      }
       
     } catch (error) {
       console.error('Login failed:', error);
@@ -77,6 +98,8 @@ export default function LoginPage() {
           errorMessage = 'ไม่สามารถเข้าสู่ระบบได้';
         } else if (error.message.includes('network') || error.message.includes('timeout')) {
           errorMessage = 'ไม่สามารถเชื่อมต่อกับเซิร์ฟเวอร์ได้ กรุณาลองใหม่อีกครั้ง';
+        } else if (error.message.includes('Failed to fetch')) {
+          errorMessage = 'ไม่สามารถเชื่อมต่อกับเซิร์ฟเวอร์ได้ กรุณาตรวจสอบการเชื่อมต่ออินเทอร์เน็ต';
         } else {
           errorMessage = error.message;
         }
@@ -164,10 +187,10 @@ export default function LoginPage() {
               {isSubmitting ? (
                 <>
                   <CircularProgress size={20} sx={{ mr: 1 }} />
-                  กำลังเปลี่ยนเส้นทางไป AD...
+                  กำลังเชื่อมต่อกับ Azure AD...
                 </>
               ) : (
-                'Login'
+                'เข้าสู่ระบบด้วย Azure AD'
               )}
             </Button>
           </Box>
