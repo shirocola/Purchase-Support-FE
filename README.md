@@ -135,11 +135,13 @@
 │   ├── layout.tsx           # Root layout
 │   ├── providers.tsx        # React Query & Theme providers
 │   ├── components-showcase/page.tsx # Component showcase (Task 6)
-│   ├── material/page.tsx    # Material management page - ใหม่!
-│   └── po/[id]/             # PO routes
-│       ├── edit/page.tsx    # PO Edit page
-│       ├── send-email/page.tsx  # PO Email Form page
-│       └── acknowledge-status/page.tsx  # PO Acknowledge Status page
+│   └── po/                  # PO routes
+│       ├── list/page.tsx    # PO List page - ใหม่!
+│       ├── material/page.tsx # Material management page - ใหม่!
+│       └── [id]/            # Dynamic PO routes
+│           ├── edit/page.tsx    # PO Edit page
+│           ├── send-email/page.tsx  # PO Email Form page
+│           └── acknowledge-status/page.tsx  # PO Acknowledge Status page
 ├── components/              # React components
 │   ├── layout/              # Layout components (Task 7)
 │   │   ├── MainLayout.tsx   # Main layout with sidebar
@@ -219,7 +221,7 @@ npm run dev
 ### Main Routes
 - `/` - หน้าแรก
 - `/po/list` - หน้ารายการ PO - ใหม่!
-- `/material` - หน้าจัดการวัสดุ - ใหม่!
+- `/po/material` - หน้าจัดการวัสดุ - ใหม่!
 - `/components-showcase` - ตัวอย่างการใช้งาน POStatusTimeline & POAuditLog
 - `/po/[id]/edit` - หน้าแก้ไข/ดู PO
 - `/po/[id]/send-email` - หน้าส่งอีเมล PO
@@ -229,7 +231,7 @@ npm run dev
 ```
 http://localhost:3002/                             # หน้าแรก (หรือพอร์ตที่ระบบใช้งาน)
 http://localhost:3002/po/list                      # รายการ PO - ใหม่!
-http://localhost:3002/material                     # จัดการวัสดุ - ใหม่!
+http://localhost:3002/po/material                  # จัดการวัสดุ - ใหม่!
 http://localhost:3002/components-showcase          # Component showcase (Task 6)
 http://localhost:3002/po/po-001/edit              # แก้ไข PO
 http://localhost:3002/po/po-001/send-email        # ส่งอีเมล PO
@@ -292,7 +294,7 @@ npm run test:ci     # Run tests with coverage
 
 ### ตัวอย่างการใช้งาน Material Management (จัดการวัสดุ) - ใหม่!
 
-1. **เข้าหน้าจัดการวัสดุ**: ไปที่ [http://localhost:3000/material](http://localhost:3000/material)
+1. **เข้าหน้าจัดการวัสดุ**: ไปที่ [http://localhost:3000/po/material](http://localhost:3000/po/material)
 2. **ดูรายการวัสดุ**: สังเกตตารางแสดงรายการวัสดุทั้งหมดพร้อมข้อมูลสำคัญ
 3. **ทดสอบการค้นหาวัสดุ**:
    - พิมพ์ในช่อง "ค้นหาวัสดุ" เพื่อใช้ autocomplete search

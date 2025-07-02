@@ -54,7 +54,7 @@ export default function Home() {
             <Typography variant="body2" color="text.secondary" sx={{ mb: 3 }}>
               จัดการชื่อเทียบเท่าสำหรับวัสดุที่เป็นความลับ (Material Control เท่านั้น)
             </Typography>
-            <Link href="/material" passHref>
+            <Link href="/po/material" passHref>
               <Button variant="contained" fullWidth>
                 จัดการวัสดุ
               </Button>
