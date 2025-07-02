@@ -5,6 +5,7 @@
 ## 🎯 Overview
 
 โปรเจกต์นี้เป็นส่วน Frontend ของระบบจัดการ Purchase Order (PO) ที่มีฟีเจอร์หลัก:
+- **หน้ารายการ PO** แสดงรายการใบสั่งซื้อจากระบบ SAP พร้อมการค้นหาและกรอง
 - **หน้า Preview & แก้ไข PO** พร้อมระบบสิทธิ์ตามบทบาทผู้ใช้
 - **ระบบ Role-based Access Control (RBAC)** สำหรับ AppUser, MaterialControl, Admin, Vendor
 - **การแสดง/ซ่อนข้อมูลตามสิทธิ์** (Data Masking)
@@ -26,6 +27,17 @@
 - **Quick Actions** ปุ่มดู, แก้ไข, ส่งอีเมล, ติดตาม acknowledge
 - **Responsive Table** ปรับรูปแบบตารางให้เหมาะกับหน้าจอ
 - **Loading และ Empty States** แสดงสถานะการโหลดและกรณีไม่มีข้อมูล
+
+### ✅ จัดการวัสดุ (PO Material) - ใหม่!
+- **การค้นหาวัสดุ** ค้นหาด้วย autocomplete ตามรหัสหรือชื่อวัสดุ
+- **ระบบกรองข้อมูล** กรองตามหมวดหมู่, วัสดุลับ, หรือมีชื่อเทียบเท่า
+- **ปุ่ม Search และ Reset** สำหรับการค้นหาและล้างตัวกรอง (นำมาใช้ซ้ำจาก POFilter)
+- **ตารางแสดงรายการวัสดุ** พร้อมข้อมูลรหัส, ชื่อ, หมวดหมู่, สถานะความลับ
+- **การแก้ไขชื่อเทียบเท่า** สำหรับ Material Control เพื่อตั้งชื่อสมมติให้วัสดุลับ
+- **Role-based Permissions** แสดง/ซ่อนข้อมูลตามสิทธิ์ (Vendor ไม่เห็นข้อมูลลับ)
+- **Data Masking** ซ่อนชื่อจริงของวัสดุลับสำหรับ Vendor
+- **Responsive Design** รองรับ desktop และ mobile
+- **Sorting และ Pagination** เรียงลำดับและแบ่งหน้าข้อมูล
 
 ### ✅ หน้า PO Preview & Edit (Task 3)
 - แสดงข้อมูล PO ครบถ้วน (รายการสินค้า, ราคา, vendor details)
@@ -123,6 +135,7 @@
 │   ├── layout.tsx           # Root layout
 │   ├── providers.tsx        # React Query & Theme providers
 │   ├── components-showcase/page.tsx # Component showcase (Task 6)
+│   ├── material/page.tsx    # Material management page - ใหม่!
 │   └── po/[id]/             # PO routes
 │       ├── edit/page.tsx    # PO Edit page
 │       ├── send-email/page.tsx  # PO Email Form page
@@ -137,6 +150,8 @@
 │   │   ├── POAcknowledgeStatus.tsx  # Vendor acknowledge tracking
 │   │   ├── POStatusTimeline.tsx # Status timeline/stepper (Task 6)
 │   │   ├── POAuditLog.tsx      # Enhanced audit log with filters (Task 6)
+│   │   ├── MaterialManagement.tsx # Material management component - ใหม่!
+│   │   ├── MaterialFilter.tsx  # Material search/filter component - ใหม่!
 │   │   ├── AuditLog.tsx        # Basic audit log component
 │   │   ├── POHeader.tsx        # PO header information
 │   │   ├── POItemsTable.tsx    # Items table with permissions
@@ -151,13 +166,15 @@
 │   ├── contexts/           # React contexts (Task 7)
 │   │   └── auth-context.tsx # Authentication and role management
 │   ├── api/               # API service layer
-│   │   └── po.ts          # PO API services
+│   │   ├── po.ts          # PO API services
+│   │   └── material.ts    # Material API services - ใหม่!
 │   ├── hooks/             # React Query hooks
-│   │   └── usePO.ts       # PO-related hooks
+│   │   ├── usePO.ts       # PO-related hooks
+│   │   └── useMaterial.ts # Material-related hooks - ใหม่!
 │   ├── types/             # TypeScript types
-│   │   └── po.ts          # PO type definitions
+│   │   └── po.ts          # PO & Material type definitions
 │   ├── utils/             # Utility functions
-│   │   └── permissions.ts  # Role-based permissions
+│   │   └── permissions.ts  # Role-based permissions (updated for Material)
 │   └── mockData.ts        # Mock data for testing/demo
 ├── __tests__/             # Test files
 │   ├── POEditPreview.test.tsx
@@ -202,6 +219,7 @@ npm run dev
 ### Main Routes
 - `/` - หน้าแรก
 - `/po/list` - หน้ารายการ PO - ใหม่!
+- `/material` - หน้าจัดการวัสดุ - ใหม่!
 - `/components-showcase` - ตัวอย่างการใช้งาน POStatusTimeline & POAuditLog
 - `/po/[id]/edit` - หน้าแก้ไข/ดู PO
 - `/po/[id]/send-email` - หน้าส่งอีเมล PO
@@ -209,12 +227,13 @@ npm run dev
 
 ### Example URLs
 ```
-http://localhost:3000/                             # หน้าแรก
-http://localhost:3000/po/list                      # รายการ PO - ใหม่!
-http://localhost:3000/components-showcase          # Component showcase (Task 6)
-http://localhost:3000/po/po-001/edit              # แก้ไข PO
-http://localhost:3000/po/po-001/send-email        # ส่งอีเมล PO
-http://localhost:3000/po/po-001/acknowledge-status # ติดตาม vendor acknowledge
+http://localhost:3002/                             # หน้าแรก (หรือพอร์ตที่ระบบใช้งาน)
+http://localhost:3002/po/list                      # รายการ PO - ใหม่!
+http://localhost:3002/material                     # จัดการวัสดุ - ใหม่!
+http://localhost:3002/components-showcase          # Component showcase (Task 6)
+http://localhost:3002/po/po-001/edit              # แก้ไข PO
+http://localhost:3002/po/po-001/send-email        # ส่งอีเมล PO
+http://localhost:3002/po/po-001/acknowledge-status # ติดตาม vendor acknowledge
 ```
 
 ### การใช้งาน
@@ -270,6 +289,35 @@ npm run test:ci     # Run tests with coverage
 8. **ทดสอบ Role-based Display**:
    - เปลี่ยน user role เป็น AppUser เพื่อดูการซ่อนคอลัมน์ "มูลค่า"
    - เปลี่ยนกลับเป็น Admin/MaterialControl เพื่อดูข้อมูลครบถ้วน
+
+### ตัวอย่างการใช้งาน Material Management (จัดการวัสดุ) - ใหม่!
+
+1. **เข้าหน้าจัดการวัสดุ**: ไปที่ [http://localhost:3000/material](http://localhost:3000/material)
+2. **ดูรายการวัสดุ**: สังเกตตารางแสดงรายการวัสดุทั้งหมดพร้อมข้อมูลสำคัญ
+3. **ทดสอบการค้นหาวัสดุ**:
+   - พิมพ์ในช่อง "ค้นหาวัสดุ" เพื่อใช้ autocomplete search
+   - ระบบจะแสดงรายการวัสดุที่ตรงกับคำค้นหา
+   - เลือกวัสดุจาก dropdown หรือพิมพ์ต่อไป
+4. **ทดสอบการกรองข้อมูล**:
+   - คลิกที่ "ตัวกรองการค้นหา" เพื่อขยายตัวกรอง
+   - เลือกหมวดหมู่วัสดุ
+   - เปิด/ปิด switch "เฉพาะวัสดุลับ" และ "มีชื่อเทียบเท่า"
+   - คลิก "ค้นหา" เพื่อใช้งานตัวกรอง
+5. **ทดสอบการแก้ไขชื่อเทียบเท่า** (Material Control เท่านั้น):
+   - มองหาวัสดุที่มี chip "ความลับ" (สีแดง)
+   - คลิกปุ่ม "แก้ไข" (ไอคอนดินสอ)
+   - ระบุชื่อเทียบเท่าในกล่องโต้ตอบ
+   - คลิก "บันทึก" เพื่อบันทึกการเปลี่ยนแปลง
+6. **ทดสอบการเรียงลำดับ**:
+   - คลิกที่หัวตาราง (รหัสวัสดุ, ชื่อวัสดุ, หมวดหมู่, ชื่อเทียบเท่า) เพื่อเรียงลำดับ
+   - คลิกซ้ำเพื่อเปลี่ยนจาก asc เป็น desc
+7. **ทดสอบ Pagination**:
+   - เปลี่ยนจำนวนรายการต่อหน้า (5, 10, 25, 50)
+   - เปลี่ยนหน้าด้วยปุ่ม previous/next
+8. **ทดสอบ Role-based Display**:
+   - เปลี่ยน user role เป็น Vendor เพื่อดูการซ่อนข้อมูลลับ
+   - เปลี่ยนกลับเป็น Material Control เพื่อดูข้อมูลครบถ้วน
+   - สังเกตการ masking ของชื่อวัสดุที่เป็นความลับ
 
 ### ตัวอย่างการใช้งาน PO Preview & Edit
 

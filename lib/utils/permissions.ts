@@ -160,3 +160,21 @@ export function getStatusColor(status: string): string {
       return 'default';
   }
 }
+
+/**
+ * Check if a user can edit material alias names
+ */
+export function canUserEditMaterial(role: UserRole): boolean {
+  return role === UserRole.ADMIN || role === UserRole.MATERIAL_CONTROL;
+}
+
+/**
+ * Mask sensitive material data based on user role and confidentiality
+ */
+export function maskMaterialValue(value: string, role: UserRole, isConfidential: boolean): string {
+  // Only vendors see masked confidential material data
+  if (role === UserRole.VENDOR && isConfidential) {
+    return '***';
+  }
+  return value;
+}

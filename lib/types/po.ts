@@ -194,3 +194,50 @@ export interface POListResponse {
   limit: number;
   totalPages: number;
 }
+
+// PO Material types for confidential material management
+export interface Material {
+  id: string;
+  materialCode: string;
+  materialName: string;
+  category: string;
+  description?: string;
+  isConfidential: boolean;
+  aliasName?: string; // Confidential alias name
+  createdAt: string;
+  updatedAt: string;
+  createdBy: string;
+  updatedBy: string;
+}
+
+export interface MaterialFilter {
+  search?: string;
+  category?: string;
+  isConfidential?: boolean;
+  hasAlias?: boolean;
+}
+
+export interface MaterialSortOptions {
+  sortBy: 'materialCode' | 'materialName' | 'category' | 'aliasName' | 'updatedAt';
+  sortOrder: 'asc' | 'desc';
+}
+
+export interface MaterialListParams {
+  page?: number;
+  limit?: number;
+  filter?: MaterialFilter;
+  sort?: MaterialSortOptions;
+}
+
+export interface MaterialListResponse {
+  items: Material[];
+  total: number;
+  page: number;
+  limit: number;
+  totalPages: number;
+}
+
+export interface MaterialUpdateData {
+  aliasName?: string;
+  isConfidential?: boolean;
+}

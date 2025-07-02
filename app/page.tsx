@@ -10,7 +10,7 @@ import {
   CardContent, 
   Button,
 } from '@mui/material';
-import { ShoppingCart, Assignment, Email } from '@mui/icons-material';
+import { ShoppingCart, Assignment, Email, Inventory } from '@mui/icons-material';
 
 export default function Home() {
   return (
@@ -27,8 +27,8 @@ export default function Home() {
         </Typography>
       </Box>
 
-      <Box sx={{ display: 'flex', flexDirection: { xs: 'column', md: 'row' }, gap: 4 }}>
-        <Card sx={{ flex: 1 }}>
+      <Box sx={{ display: 'flex', flexDirection: { xs: 'column', md: 'row' }, gap: 4, flexWrap: 'wrap' }}>
+        <Card sx={{ flex: '1 1 300px', minWidth: { xs: '100%', md: '300px' } }}>
           <CardContent sx={{ textAlign: 'center', p: 3 }}>
             <ShoppingCart sx={{ fontSize: 48, color: 'primary.main', mb: 2 }} />
             <Typography variant="h6" gutterBottom>
@@ -45,7 +45,24 @@ export default function Home() {
           </CardContent>
         </Card>
 
-        <Card sx={{ flex: 1 }}>
+        <Card sx={{ flex: '1 1 300px', minWidth: { xs: '100%', md: '300px' } }}>
+          <CardContent sx={{ textAlign: 'center', p: 3 }}>
+            <Inventory sx={{ fontSize: 48, color: 'primary.main', mb: 2 }} />
+            <Typography variant="h6" gutterBottom>
+              จัดการวัสดุ
+            </Typography>
+            <Typography variant="body2" color="text.secondary" sx={{ mb: 3 }}>
+              จัดการชื่อเทียบเท่าสำหรับวัสดุที่เป็นความลับ (Material Control เท่านั้น)
+            </Typography>
+            <Link href="/material" passHref>
+              <Button variant="contained" fullWidth>
+                จัดการวัสดุ
+              </Button>
+            </Link>
+          </CardContent>
+        </Card>
+
+        <Card sx={{ flex: '1 1 300px', minWidth: { xs: '100%', md: '300px' } }}>
           <CardContent sx={{ textAlign: 'center', p: 3 }}>
             <Assignment sx={{ fontSize: 48, color: 'primary.main', mb: 2 }} />
             <Typography variant="h6" gutterBottom>
@@ -65,7 +82,7 @@ export default function Home() {
           </CardContent>
         </Card>
 
-        <Card sx={{ flex: 1 }}>
+        <Card sx={{ flex: '1 1 300px', minWidth: { xs: '100%', md: '300px' } }}>
           <CardContent sx={{ textAlign: 'center', p: 3 }}>
             <Email sx={{ fontSize: 48, color: 'primary.main', mb: 2 }} />
             <Typography variant="h6" gutterBottom>
@@ -107,6 +124,8 @@ export default function Home() {
         </Typography>
         <ul style={{ paddingLeft: '1.5rem' }}>
           <li>หน้า Preview & แก้ไข PO พร้อมระบบสิทธิ์ตามบทบาทผู้ใช้</li>
+          <li>หน้ารายการ PO พร้อมการค้นหา กรอง และเรียงลำดับข้อมูล</li>
+          <li>ระบบจัดการวัสดุและชื่อเทียบเท่าสำหรับวัสดุลับ</li>
           <li>การแสดงข้อมูล PO ทั้งหมดที่จะส่งให้ vendor</li>
           <li>ระบบ validation และ error handling</li>
           <li>Responsive design รองรับ desktop และ mobile</li>
