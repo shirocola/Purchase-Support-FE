@@ -86,16 +86,70 @@ export function MainLayout({ children }: MainLayoutProps) {
   };
 
   if (!user) {
+    // For public pages, render without user-specific features
     return (
-      <Box
-        sx={{
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          height: '100vh',
-        }}
-      >
-        <Typography>Loading...</Typography>
+      <Box sx={{ display: 'flex', minHeight: '100vh' }}>
+        <AppBar
+          position="fixed"
+          sx={{
+            zIndex: theme.zIndex.drawer + 1,
+            backgroundColor: 'rgb(15, 17, 119)',
+          }}
+        >
+          <Toolbar>
+            <IconButton
+              color="inherit"
+              aria-label="open drawer"
+              edge="start"
+              onClick={handleSidebarToggle}
+              sx={{ mr: 2 }}
+            >
+              <MenuIcon />
+            </IconButton>
+            <Typography variant="h6" noWrap component="div" sx={{ flexGrow: 1 }}>
+              ระบบจัดการใบสั่งซื้อ
+            </Typography>
+            {/* Show login button when not authenticated */}
+            <Button
+              color="inherit"
+              variant="outlined"
+              href="/auth/login"
+              sx={{ 
+                ml: 2,
+                borderColor: 'white',
+                '&:hover': { borderColor: 'rgba(255, 255, 255, 0.7)' }
+              }}
+            >
+              เข้าสู่ระบบ
+            </Button>
+          </Toolbar>
+        </AppBar>
+
+        {/* Sidebar for public pages */}
+        <Sidebar 
+          open={sidebarOpen} 
+          onClose={() => setSidebarOpen(false)}
+          isMobile={isMobile}
+          drawerWidth={drawerWidth}
+        />
+
+        {/* Main content */}
+        <Box
+          component="main"
+          sx={{
+            flexGrow: 1,
+            p: 3,
+            width: { md: `calc(100% - ${sidebarOpen ? drawerWidth : 0}px)` },
+            ml: { md: sidebarOpen ? `${drawerWidth}px` : 0 },
+            transition: theme.transitions.create(['margin', 'width'], {
+              easing: theme.transitions.easing.sharp,
+              duration: theme.transitions.duration.leavingScreen,
+            }),
+          }}
+        >
+          <Toolbar />
+          {children}
+        </Box>
       </Box>
     );
   }

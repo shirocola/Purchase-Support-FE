@@ -7,32 +7,16 @@ import {
   Box,
   Container,
   Paper,
-  TextField,
   Button,
   Typography,
   Alert,
   CircularProgress,
-  InputAdornment,
-  IconButton,
   useTheme,
   useMediaQuery,
 } from '@mui/material';
-import {
-  Visibility,
-  VisibilityOff,
-  Person,
-  Lock,
-} from '@mui/icons-material';
 import { useAuth } from '@/lib/contexts/auth-context';
 
-interface LoginFormData {
-  username: string;
-  password: string;
-}
-
 interface LoginFormErrors {
-  username?: string;
-  password?: string;
   general?: string;
 }
 
@@ -43,13 +27,7 @@ export default function LoginPage() {
   const searchParams = useSearchParams();
   const { login, isAuthenticated, isLoading } = useAuth();
   
-  const [formData, setFormData] = useState<LoginFormData>({
-    username: '',
-    password: '',
-  });
-  
   const [errors, setErrors] = useState<LoginFormErrors>({});
-  const [showPassword, setShowPassword] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   
   // Redirect if already authenticated
@@ -75,33 +53,15 @@ export default function LoginPage() {
     );
   }
   
-  const validateForm = (): boolean => {
-    const newErrors: LoginFormErrors = {};
-    
-    if (!formData.username.trim()) {
-      newErrors.username = 'กรุณากรอกชื่อผู้ใช้';
-    }
-    
-    if (!formData.password) {
-      newErrors.password = 'กรุณากรอกรหัสผ่าน';
-    } else if (formData.password.length < 3) {
-      newErrors.password = 'รหัสผ่านต้องมีอย่างน้อย 3 ตัวอักษร';
-    }
-    
-    setErrors(newErrors);
-    return Object.keys(newErrors).length === 0;
-  };
-  
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
-    if (!validateForm()) return;
     
     setIsSubmitting(true);
     setErrors({});
     
     try {
-      await login(formData);
+      // Redirect to AD authentication or trigger AD login
+      await login({ username: 'ad-user', password: '' });
       
       // Redirect after successful login
       const redirectTo = searchParams.get('redirect') || '/';
@@ -124,27 +84,6 @@ export default function LoginPage() {
     } finally {
       setIsSubmitting(false);
     }
-  };
-  
-  const handleInputChange = (field: keyof LoginFormData) => (
-    e: React.ChangeEvent<HTMLInputElement>
-  ) => {
-    setFormData(prev => ({
-      ...prev,
-      [field]: e.target.value,
-    }));
-    
-    // Clear field-specific error when user starts typing
-    if (errors[field]) {
-      setErrors(prev => ({
-        ...prev,
-        [field]: undefined,
-      }));
-    }
-  };
-  
-  const togglePasswordVisibility = () => {
-    setShowPassword(prev => !prev);
   };
   
   return (
@@ -170,7 +109,7 @@ export default function LoginPage() {
           <Box textAlign="center" mb={4}>
             <Box sx={{ mb: 2, display: 'flex', justifyContent: 'center' }}>
               <Image
-                src="/PurchaseSupport.Logo.svg"
+                src="/PurchaseSupport.Logo.png"
                 alt="Purchase Support Logo"
                 width={240}
                 height={120}
@@ -181,20 +120,6 @@ export default function LoginPage() {
                 }}
               />
             </Box>
-            <Typography 
-              variant={isMobile ? 'h5' : 'h4'} 
-              component="h1" 
-              gutterBottom
-              fontWeight="bold"
-            >
-              ระบบจัดการใบสั่งซื้อ
-            </Typography>
-            <Typography 
-              variant="body1" 
-              color="text.secondary"
-            >
-              เข้าสู่ระบบเพื่อเริ่มการทำงาน (AD Authentication)
-            </Typography>
           </Box>
           
           {/* Error Alert */}
@@ -210,62 +135,6 @@ export default function LoginPage() {
           
           {/* Login Form */}
           <Box component="form" onSubmit={handleSubmit}>
-            <TextField
-              fullWidth
-              label="ชื่อผู้ใช้"
-              variant="outlined"
-              value={formData.username}
-              onChange={handleInputChange('username')}
-              error={!!errors.username}
-              helperText={errors.username}
-              margin="normal"
-              autoComplete="username"
-              autoFocus
-              disabled={isSubmitting}
-              InputProps={{
-                startAdornment: (
-                  <InputAdornment position="start">
-                    <Person color={errors.username ? 'error' : 'action'} />
-                  </InputAdornment>
-                ),
-              }}
-              data-testid="username-input"
-            />
-            
-            <TextField
-              fullWidth
-              label="รหัสผ่าน"
-              type={showPassword ? 'text' : 'password'}
-              variant="outlined"
-              value={formData.password}
-              onChange={handleInputChange('password')}
-              error={!!errors.password}
-              helperText={errors.password}
-              margin="normal"
-              autoComplete="current-password"
-              disabled={isSubmitting}
-              InputProps={{
-                startAdornment: (
-                  <InputAdornment position="start">
-                    <Lock color={errors.password ? 'error' : 'action'} />
-                  </InputAdornment>
-                ),
-                endAdornment: (
-                  <InputAdornment position="end">
-                    <IconButton
-                      aria-label="toggle password visibility"
-                      onClick={togglePasswordVisibility}
-                      edge="end"
-                      disabled={isSubmitting}
-                    >
-                      {showPassword ? <VisibilityOff /> : <Visibility />}
-                    </IconButton>
-                  </InputAdornment>
-                ),
-              }}
-              data-testid="password-input"
-            />
-            
             <Button
               type="submit"
               fullWidth
@@ -294,10 +163,10 @@ export default function LoginPage() {
               {isSubmitting ? (
                 <>
                   <CircularProgress size={20} sx={{ mr: 1 }} />
-                  กำลังเข้าสู่ระบบ...
+                  กำลังเปลี่ยนเส้นทางไป AD...
                 </>
               ) : (
-                'เข้าสู่ระบบ'
+                'Login'
               )}
             </Button>
           </Box>

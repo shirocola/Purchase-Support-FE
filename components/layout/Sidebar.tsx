@@ -17,7 +17,7 @@ import {
   useMediaQuery,
   Chip,
 } from '@mui/material';
-import { ExpandLess, ExpandMore } from '@mui/icons-material';
+import { ExpandLess, ExpandMore, Home, Dashboard } from '@mui/icons-material';
 import { useAuth } from '@/lib/contexts/auth-context';
 import { getMenuItemsForRole, MenuItem } from '@/config/menu-config';
 
@@ -25,19 +25,129 @@ interface SidebarProps {
   open: boolean;
   onClose: () => void;
   variant?: 'permanent' | 'persistent' | 'temporary';
+  isMobile?: boolean;
+  drawerWidth?: number;
 }
 
-export function Sidebar({ open, onClose, variant = 'temporary' }: SidebarProps) {
+export function Sidebar({ 
+  open, 
+  onClose, 
+  variant = 'temporary',
+  isMobile: propIsMobile,
+  drawerWidth: propDrawerWidth 
+}: SidebarProps) {
   const { user } = useAuth();
   const pathname = usePathname();
   const theme = useTheme();
-  const isMobile = useMediaQuery(theme.breakpoints.down('md'));
+  const isMobile = propIsMobile ?? useMediaQuery(theme.breakpoints.down('md'));
   const [expandedItems, setExpandedItems] = useState<Set<string>>(new Set());
 
-  const drawerWidth = 280;
+  const drawerWidth = propDrawerWidth ?? 280;
 
   if (!user) {
-    return null;
+    // Show limited menu for public access
+    const publicMenuItems: MenuItem[] = [
+      {
+        id: 'home',
+        title: 'หน้าแรก',
+        path: '/',
+        icon: Home,
+        roles: [],
+      },
+      {
+        id: 'components-showcase',
+        title: 'ตัวอย่างคอมโพเนนต์',
+        path: '/components-showcase',
+        icon: Dashboard,
+        roles: [],
+      },
+    ];
+
+    const renderPublicMenuItem = (item: MenuItem) => {
+      const isActive = pathname === item.path;
+      
+      return (
+        <ListItem key={item.id} disablePadding>
+          <ListItemButton
+            component={Link}
+            href={item.path}
+            selected={isActive}
+            onClick={() => isMobile && onClose()}
+            sx={{
+              pl: 2,
+              borderRadius: 1,
+              mx: 1,
+              '&.Mui-selected': {
+                backgroundColor: theme.palette.primary.light,
+                color: theme.palette.primary.contrastText,
+                '&:hover': {
+                  backgroundColor: theme.palette.primary.main,
+                },
+              },
+            }}
+          >
+            <ListItemIcon
+              sx={{
+                minWidth: 40,
+                color: isActive ? 'inherit' : theme.palette.text.secondary,
+              }}
+            >
+              <item.icon />
+            </ListItemIcon>
+            <ListItemText
+              primary={item.title}
+              primaryTypographyProps={{
+                fontSize: '1rem',
+                fontWeight: isActive ? 600 : 400,
+              }}
+            />
+          </ListItemButton>
+        </ListItem>
+      );
+    };
+
+    return (
+      <Drawer
+        variant={isMobile ? 'temporary' : variant}
+        open={open}
+        onClose={onClose}
+        ModalProps={{
+          keepMounted: true, // Better mobile performance
+        }}
+        sx={{
+          width: drawerWidth,
+          flexShrink: 0,
+          '& .MuiDrawer-paper': {
+            width: drawerWidth,
+            boxSizing: 'border-box',
+          },
+        }}
+      >
+        <Box sx={{ overflow: 'auto', mt: 8, height: '100%', display: 'flex', flexDirection: 'column' }}>
+          {/* Header */}
+          <Box sx={{ p: 2, borderBottom: 1, borderColor: 'divider' }}>
+            <Typography variant="h6" component="div" fontWeight="bold">
+              PO Management
+            </Typography>
+            <Typography variant="caption" color="text.secondary">
+              โหมดแขก (ไม่ได้เข้าสู่ระบบ)
+            </Typography>
+          </Box>
+
+          {/* Public Menu Items */}
+          <List sx={{ flexGrow: 1 }}>
+            {publicMenuItems.map(renderPublicMenuItem)}
+          </List>
+
+          {/* Footer for public access */}
+          <Box sx={{ p: 2, borderTop: 1, borderColor: 'divider' }}>
+            <Typography variant="caption" color="text.secondary" align="center" display="block">
+              เข้าสู่ระบบเพื่อใช้งานฟีเจอร์เต็มรูปแบบ
+            </Typography>
+          </Box>
+        </Box>
+      </Drawer>
+    );
   }
 
   const menuItems = getMenuItemsForRole(user.role);

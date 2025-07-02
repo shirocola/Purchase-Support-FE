@@ -77,11 +77,9 @@ export function AuthProvider({
   defaultRole = UserRole.MATERIAL_CONTROL,
   enableMockAuth = true
 }: AuthProviderProps) {
-  // For development, start with the mock user directly
-  const [user, setUser] = useState<User | null>(
-    enableMockAuth ? mockUsers[defaultRole] : null
-  );
-  const [isLoading, setIsLoading] = useState(false); // Start with false since we set user immediately
+  // Start with no user - let them login first
+  const [user, setUser] = useState<User | null>(null);
+  const [isLoading, setIsLoading] = useState(false);
 
   const login = async (credentials: LoginRequest) => {
     setIsLoading(true);
