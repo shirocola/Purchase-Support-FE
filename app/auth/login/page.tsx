@@ -60,19 +60,21 @@ export default function LoginPage() {
     setErrors({});
     
     try {
-      // Redirect to AD authentication or trigger AD login
-      await login({ username: 'ad-user', password: '' });
+      // For AD authentication, redirect to backend AD auth endpoint
+      // This will initiate the AD OAuth flow
+      const apiBaseUrl = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:3001/api';
+      const redirectUrl = `${apiBaseUrl}/auth/ad/login`;
       
-      // Redirect after successful login
-      const redirectTo = searchParams.get('redirect') || '/';
-      router.push(redirectTo);
+      // Redirect to backend AD authentication
+      window.location.href = redirectUrl;
+      
     } catch (error) {
       console.error('Login failed:', error);
       
       let errorMessage = 'เกิดข้อผิดพลาดในการเข้าสู่ระบบ';
       if (error instanceof Error) {
         if (error.message.includes('401') || error.message.includes('Unauthorized')) {
-          errorMessage = 'ชื่อผู้ใช้หรือรหัสผ่านไม่ถูกต้อง';
+          errorMessage = 'ไม่สามารถเข้าสู่ระบบได้';
         } else if (error.message.includes('network') || error.message.includes('timeout')) {
           errorMessage = 'ไม่สามารถเชื่อมต่อกับเซิร์ฟเวอร์ได้ กรุณาลองใหม่อีกครั้ง';
         } else {
@@ -81,7 +83,6 @@ export default function LoginPage() {
       }
       
       setErrors({ general: errorMessage });
-    } finally {
       setIsSubmitting(false);
     }
   };

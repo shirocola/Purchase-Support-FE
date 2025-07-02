@@ -75,8 +75,11 @@ interface AuthProviderProps {
 export function AuthProvider({ 
   children, 
   defaultRole = UserRole.MATERIAL_CONTROL,
-  enableMockAuth = true
+  enableMockAuth
 }: AuthProviderProps) {
+  // Check environment variable if enableMockAuth is not explicitly set
+  const shouldUseMockAuth = enableMockAuth ?? (process.env.NEXT_PUBLIC_ENABLE_MOCK_AUTH === 'true');
+  
   // Start with no user - let them login first
   const [user, setUser] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState(false);
@@ -85,7 +88,7 @@ export function AuthProvider({
     setIsLoading(true);
     
     try {
-      if (enableMockAuth) {
+      if (shouldUseMockAuth) {
         // Mock login for development
         // Find user by username - allow both exact username match and some test cases
         let foundUser = Object.values(mockUsers).find(u => u.username === credentials.username);
@@ -101,7 +104,7 @@ export function AuthProvider({
           throw new Error('Invalid credentials');
         }
       } else {
-        // Real API login
+        // Real API login - call backend for AD authentication
         const loginResponse = await AuthService.login(credentials);
         setUser(loginResponse.user);
       }
@@ -117,7 +120,7 @@ export function AuthProvider({
     setIsLoading(true);
     
     try {
-      if (!enableMockAuth) {
+      if (!shouldUseMockAuth) {
         await AuthService.logout();
       }
     } catch (error) {
@@ -130,7 +133,7 @@ export function AuthProvider({
 
   const switchRole = (role: UserRole) => {
     // This is primarily for development/testing
-    if (enableMockAuth && user) {
+    if (shouldUseMockAuth && user) {
       const newUser = mockUsers[role];
       setUser(newUser);
     } else {
@@ -139,7 +142,7 @@ export function AuthProvider({
   };
 
   const refreshUser = async () => {
-    if (enableMockAuth) {
+    if (shouldUseMockAuth) {
       // In mock mode, just return current user
       return;
     }

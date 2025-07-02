@@ -8,7 +8,7 @@ interface ConditionalLayoutProps {
   children: React.ReactNode;
 }
 
-const AUTH_PATHS = ['/auth/login', '/auth/register', '/auth/forgot-password'];
+const AUTH_PATHS = ['/auth/login', '/auth/register', '/auth/forgot-password', '/auth/callback'];
 const PUBLIC_PATHS = ['/', '/components-showcase']; // Pages that don't require authentication
 
 export function ConditionalLayout({ children }: ConditionalLayoutProps) {
