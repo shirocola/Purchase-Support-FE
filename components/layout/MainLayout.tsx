@@ -1,6 +1,7 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 import {
   AppBar,
   Box,
@@ -39,12 +40,19 @@ const roleLabels: Record<UserRole, string> = {
 
 export function MainLayout({ children }: MainLayoutProps) {
   const { user, switchRole, logout } = useAuth();
+  const router = useRouter();
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('md'));
   
-  const [sidebarOpen, setSidebarOpen] = useState(!isMobile);
+  // Always initialize state consistently, regardless of other values
+  const [sidebarOpen, setSidebarOpen] = useState(false);
   const [roleMenuAnchor, setRoleMenuAnchor] = useState<null | HTMLElement>(null);
   const [userMenuAnchor, setUserMenuAnchor] = useState<null | HTMLElement>(null);
+  
+  // Set sidebar open state after component mounts or when isMobile changes
+  useEffect(() => {
+    setSidebarOpen(!isMobile);
+  }, [isMobile]);
 
   const drawerWidth = 280;
 
@@ -77,11 +85,13 @@ export function MainLayout({ children }: MainLayoutProps) {
     try {
       await logout();
       handleUserMenuClose();
-      // Logout function will handle redirect
+      // Redirect to login page after logout
+      router.push('/auth/login');
     } catch (error) {
       console.error('Logout failed:', error);
-      // Even if logout fails, close menu
+      // Even if logout fails, close menu and redirect to login
       handleUserMenuClose();
+      router.push('/auth/login');
     }
   };
 

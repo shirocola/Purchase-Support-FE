@@ -36,93 +36,103 @@ export function Sidebar({
   isMobile: propIsMobile,
   drawerWidth: propDrawerWidth 
 }: SidebarProps) {
+  // Always declare ALL hooks at the top - never conditionally
   const { user } = useAuth();
   const pathname = usePathname();
   const theme = useTheme();
   const isMobile = propIsMobile ?? useMediaQuery(theme.breakpoints.down('md'));
   const [expandedItems, setExpandedItems] = useState<Set<string>>(new Set());
-
+  
   const drawerWidth = propDrawerWidth ?? 280;
 
-  if (!user) {
-    // Show limited menu for public access
-    const publicMenuItems: MenuItem[] = [
-      {
-        id: 'home',
-        title: 'หน้าแรก',
-        path: '/',
-        icon: Home,
-        roles: [],
-      },
-      {
-        id: 'components-showcase',
-        title: 'ตัวอย่างคอมโพเนนต์',
-        path: '/components-showcase',
-        icon: Dashboard,
-        roles: [],
-      },
-    ];
+  // Handle expand/collapse logic
+  const handleExpand = (itemId: string) => {
+    const newExpanded = new Set(expandedItems);
+    if (newExpanded.has(itemId)) {
+      newExpanded.delete(itemId);
+    } else {
+      newExpanded.add(itemId);
+    }
+    setExpandedItems(newExpanded);
+  };
 
-    const renderPublicMenuItem = (item: MenuItem) => {
-      const isActive = pathname === item.path;
-      
-      return (
-        <ListItem key={item.id} disablePadding>
-          <ListItemButton
-            component={Link}
-            href={item.path}
-            selected={isActive}
-            onClick={() => isMobile && onClose()}
-            sx={{
-              pl: 2,
-              borderRadius: 1,
-              mx: 1,
-              '&.Mui-selected': {
-                backgroundColor: theme.palette.primary.light,
-                color: theme.palette.primary.contrastText,
-                '&:hover': {
-                  backgroundColor: theme.palette.primary.main,
-                },
-              },
-            }}
-          >
-            <ListItemIcon
+  const isItemActive = (item: MenuItem): boolean => {
+    if (item.path === pathname) return true;
+    if (item.children) {
+      return item.children.some(child => isItemActive(child));
+    }
+    return false;
+  };
+
+  const isItemExpanded = (itemId: string): boolean => {
+    return expandedItems.has(itemId);
+  };
+
+  // Now handle the conditional rendering
+  const renderContent = () => {
+    if (!user) {
+      // Show limited menu for public access
+      const publicMenuItems: MenuItem[] = [
+        {
+          id: 'home',
+          title: 'หน้าแรก',
+          path: '/',
+          icon: Home,
+          roles: [],
+        },
+        {
+          id: 'components-showcase',
+          title: 'ตัวอย่างคอมโพเนนต์',
+          path: '/components-showcase',
+          icon: Dashboard,
+          roles: [],
+        },
+      ];
+
+      const renderPublicMenuItem = (item: MenuItem) => {
+        const isActive = pathname === item.path;
+        
+        return (
+          <ListItem key={item.id} disablePadding>
+            <ListItemButton
+              component={Link}
+              href={item.path}
+              selected={isActive}
+              onClick={() => isMobile && onClose()}
               sx={{
-                minWidth: 40,
-                color: isActive ? 'inherit' : theme.palette.text.secondary,
+                pl: 2,
+                borderRadius: 1,
+                mx: 1,
+                '&.Mui-selected': {
+                  backgroundColor: theme.palette.primary.light,
+                  color: theme.palette.primary.contrastText,
+                  '&:hover': {
+                    backgroundColor: theme.palette.primary.main,
+                  },
+                },
               }}
             >
-              <item.icon />
-            </ListItemIcon>
-            <ListItemText
-              primary={item.title}
-              primaryTypographyProps={{
-                fontSize: '1rem',
-                fontWeight: isActive ? 600 : 400,
-              }}
-            />
-          </ListItemButton>
-        </ListItem>
-      );
-    };
+              <ListItemIcon
+                sx={{
+                  minWidth: 40,
+                  color: isActive ? 'inherit' : theme.palette.text.secondary,
+                }}
+              >
+                <item.icon />
+              </ListItemIcon>
+              <ListItemText
+                primary={item.title}
+                primaryTypographyProps={{
+                  fontSize: '1rem',
+                  fontWeight: isActive ? 600 : 400,
+                }}
+              />
+            </ListItemButton>
+          </ListItem>
+        );
+      };
 
-    return (
-      <Drawer
-        variant={isMobile ? 'temporary' : variant}
-        open={open}
-        onClose={onClose}
-        ModalProps={{
-          keepMounted: true, // Better mobile performance
-        }}
-        sx={{
-          width: drawerWidth,
-          flexShrink: 0,
-          '& .MuiDrawer-paper': {
-            width: drawerWidth,
-            boxSizing: 'border-box',
-          },
-        }}
-      >
+      return (
         <Box sx={{ overflow: 'auto', mt: 8, height: '100%', display: 'flex', flexDirection: 'column' }}>
           {/* Header */}
           <Box sx={{ p: 2, borderBottom: 1, borderColor: 'divider' }}>
@@ -146,150 +156,129 @@ export function Sidebar({
             </Typography>
           </Box>
         </Box>
-      </Drawer>
-    );
-  }
-
-  const menuItems = getMenuItemsForRole(user.role);
-
-  const handleExpand = (itemId: string) => {
-    const newExpanded = new Set(expandedItems);
-    if (newExpanded.has(itemId)) {
-      newExpanded.delete(itemId);
-    } else {
-      newExpanded.add(itemId);
+      );
     }
-    setExpandedItems(newExpanded);
-  };
 
-  const isItemActive = (item: MenuItem): boolean => {
-    if (item.path === pathname) return true;
-    if (item.children) {
-      return item.children.some(child => isItemActive(child));
-    }
-    return false;
-  };
+    // Authenticated user content
+    const menuItems = getMenuItemsForRole(user.role);
 
-  const isItemExpanded = (itemId: string): boolean => {
-    return expandedItems.has(itemId);
-  };
-
-  const renderMenuItem = (item: MenuItem, level = 0) => {
-    const hasChildren = item.children && item.children.length > 0;
-    const isActive = isItemActive(item);
-    const isExpanded = isItemExpanded(item.id);
-    
-    const handleClick = () => {
-      if (hasChildren) {
-        handleExpand(item.id);
-      } else {
-        // Close drawer on mobile when navigating
-        if (isMobile) {
-          onClose();
+    const renderMenuItem = (item: MenuItem, level = 0) => {
+      const hasChildren = item.children && item.children.length > 0;
+      const isActive = isItemActive(item);
+      const isExpanded = isItemExpanded(item.id);
+      
+      const handleClick = () => {
+        if (hasChildren) {
+          handleExpand(item.id);
+        } else {
+          // Close drawer on mobile when navigating
+          if (isMobile) {
+            onClose();
+          }
         }
-      }
+      };
+
+      return (
+        <React.Fragment key={item.id}>
+          <ListItem disablePadding sx={{ pl: level * 2 }}>
+            <ListItemButton
+              component={hasChildren ? 'div' : Link}
+              href={hasChildren ? undefined : item.path}
+              onClick={handleClick}
+              selected={isActive && !hasChildren}
+              sx={{
+                minHeight: 48,
+                pl: 2 + level,
+                borderRadius: 1,
+                mx: 1,
+                '&.Mui-selected': {
+                  backgroundColor: theme.palette.primary.light,
+                  color: theme.palette.primary.contrastText,
+                  '&:hover': {
+                    backgroundColor: theme.palette.primary.main,
+                  },
+                },
+              }}
+            >
+              <ListItemIcon
+                sx={{
+                  minWidth: 40,
+                  color: isActive ? 'inherit' : theme.palette.text.secondary,
+                }}
+              >
+                <item.icon />
+              </ListItemIcon>
+              <ListItemText
+                primary={item.title}
+                secondary={level > 0 && item.description ? item.description : undefined}
+                primaryTypographyProps={{
+                  fontSize: level > 0 ? '0.875rem' : '1rem',
+                  fontWeight: isActive ? 600 : 400,
+                }}
+                secondaryTypographyProps={{
+                  fontSize: '0.75rem',
+                  color: theme.palette.text.disabled,
+                }}
+              />
+              {hasChildren && (
+                isExpanded ? <ExpandLess /> : <ExpandMore />
+              )}
+            </ListItemButton>
+          </ListItem>
+          
+          {hasChildren && (
+            <Collapse in={isExpanded} timeout="auto" unmountOnExit>
+              <List component="div" disablePadding>
+                {item.children?.map(child => renderMenuItem(child, level + 1))}
+              </List>
+            </Collapse>
+          )}
+        </React.Fragment>
+      );
     };
 
     return (
-      <React.Fragment key={item.id}>
-        <ListItem disablePadding sx={{ pl: level * 2 }}>
-          <ListItemButton
-            component={hasChildren ? 'div' : Link}
-            href={hasChildren ? undefined : item.path}
-            onClick={handleClick}
-            selected={isActive && !hasChildren}
-            sx={{
-              minHeight: 48,
-              pl: 2 + level,
-              borderRadius: 1,
-              mx: 1,
-              '&.Mui-selected': {
-                backgroundColor: theme.palette.primary.light,
-                color: theme.palette.primary.contrastText,
-                '&:hover': {
-                  backgroundColor: theme.palette.primary.main,
-                },
-              },
-            }}
-          >
-            <ListItemIcon
-              sx={{
-                minWidth: 40,
-                color: isActive ? 'inherit' : theme.palette.text.secondary,
-              }}
-            >
-              <item.icon />
-            </ListItemIcon>
-            <ListItemText
-              primary={item.title}
-              secondary={level > 0 && item.description ? item.description : undefined}
-              primaryTypographyProps={{
-                fontSize: level > 0 ? '0.875rem' : '1rem',
-                fontWeight: isActive ? 600 : 400,
-              }}
-              secondaryTypographyProps={{
-                fontSize: '0.75rem',
-                color: theme.palette.text.disabled,
-              }}
+      <Box sx={{ width: drawerWidth, height: '100%', display: 'flex', flexDirection: 'column' }}>
+        {/* Header */}
+        <Box sx={{ p: 2, borderBottom: 1, borderColor: 'divider' }}>
+          <Typography variant="h6" component="div" fontWeight="bold">
+            PO Management
+          </Typography>
+          <Typography variant="body2" color="text.secondary">
+            ระบบจัดการใบสั่งซื้อ
+          </Typography>
+          
+          {/* User Role Indicator */}
+          <Box sx={{ mt: 1 }}>
+            <Chip
+              label={user.role}
+              size="small"
+              color="primary"
+              variant="outlined"
+              sx={{ fontSize: '0.75rem' }}
             />
-            {hasChildren && (
-              isExpanded ? <ExpandLess /> : <ExpandMore />
-            )}
-          </ListItemButton>
-        </ListItem>
-        
-        {hasChildren && (
-          <Collapse in={isExpanded} timeout="auto" unmountOnExit>
-            <List component="div" disablePadding>
-              {item.children?.map(child => renderMenuItem(child, level + 1))}
-            </List>
-          </Collapse>
-        )}
-      </React.Fragment>
-    );
-  };
+          </Box>
+        </Box>
 
-  const drawerContent = (
-    <Box sx={{ width: drawerWidth, height: '100%', display: 'flex', flexDirection: 'column' }}>
-      {/* Header */}
-      <Box sx={{ p: 2, borderBottom: 1, borderColor: 'divider' }}>
-        <Typography variant="h6" component="div" fontWeight="bold">
-          PO Management
-        </Typography>
-        <Typography variant="body2" color="text.secondary">
-          ระบบจัดการใบสั่งซื้อ
-        </Typography>
-        
-        {/* User Role Indicator */}
-        <Box sx={{ mt: 1 }}>
-          <Chip
-            label={user.role}
-            size="small"
-            color="primary"
-            variant="outlined"
-            sx={{ fontSize: '0.75rem' }}
-          />
+        {/* Menu Items */}
+        <Box sx={{ flex: 1, overflow: 'auto', py: 1 }}>
+          <List>
+            {menuItems.map(item => renderMenuItem(item))}
+          </List>
+        </Box>
+
+        {/* Footer */}
+        <Box sx={{ p: 2, borderTop: 1, borderColor: 'divider' }}>
+          <Typography variant="body2" color="text.secondary" align="center">
+            {user.username}
+          </Typography>
+          <Typography variant="caption" color="text.disabled" align="center" display="block">
+            {user.email}
+          </Typography>
         </Box>
       </Box>
-
-      {/* Menu Items */}
-      <Box sx={{ flex: 1, overflow: 'auto', py: 1 }}>
-        <List>
-          {menuItems.map(item => renderMenuItem(item))}
-        </List>
-      </Box>
-
-      {/* Footer */}
-      <Box sx={{ p: 2, borderTop: 1, borderColor: 'divider' }}>
-        <Typography variant="body2" color="text.secondary" align="center">
-          {user.username}
-        </Typography>
-        <Typography variant="caption" color="text.disabled" align="center" display="block">
-          {user.email}
-        </Typography>
-      </Box>
-    </Box>
-  );
+    );
+  };
 
   return (
     <Drawer
@@ -309,7 +298,7 @@ export function Sidebar({
         },
       }}
     >
-      {drawerContent}
+      {renderContent()}
     </Drawer>
   );
 }

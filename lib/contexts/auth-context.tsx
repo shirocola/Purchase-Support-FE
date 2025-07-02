@@ -82,7 +82,53 @@ export function AuthProvider({
   
   // Start with no user - let them login first
   const [user, setUser] = useState<User | null>(null);
-  const [isLoading, setIsLoading] = useState(false);
+  const [isLoading, setIsLoading] = useState(true); // Start with loading to check existing auth
+
+  // Check for existing authentication on mount
+  useEffect(() => {
+    const checkExistingAuth = () => {
+      console.log('Checking existing auth...', { shouldUseMockAuth, defaultRole });
+      
+      if (shouldUseMockAuth) {
+        console.log('Using mock auth mode');
+        // In mock mode, initialize with default user
+        const mockUser = mockUsers[defaultRole];
+        console.log('Setting mock user:', mockUser);
+        setUser(mockUser);
+      } else {
+        console.log('Using real auth mode');
+        // Check for existing token and user data
+        const token = localStorage.getItem('authToken');
+        const userData = localStorage.getItem('userData');
+        
+        console.log('Checking localStorage:', { 
+          hasToken: !!token, 
+          hasUserData: !!userData,
+          token: token?.substring(0, 20) + '...', // Show only first 20 chars
+          userData 
+        });
+        
+        if (token && userData) {
+          try {
+            const parsedUser = JSON.parse(userData);
+            console.log('Parsed user from localStorage:', parsedUser);
+            setUser(parsedUser);
+          } catch (error) {
+            console.error('Failed to parse stored user data:', error);
+            localStorage.removeItem('authToken');
+            localStorage.removeItem('userData');
+          }
+        } else {
+          console.log('No existing auth found');
+        }
+      }
+      
+      console.log('Auth check complete, setting loading to false');
+      setIsLoading(false);
+    };
+
+    checkExistingAuth();
+  }, [shouldUseMockAuth, defaultRole]);
 
   const login = async (credentials: LoginRequest) => {
     setIsLoading(true);
@@ -104,7 +150,7 @@ export function AuthProvider({
           throw new Error('Invalid credentials');
         }
       } else {
-        // Real API login - call backend for AD authentication
+        // Real API login
         const loginResponse = await AuthService.login(credentials);
         setUser(loginResponse.user);
       }

@@ -78,7 +78,7 @@ export function Providers({ children }: { children: React.ReactNode }) {
         <QueryClientProvider client={client}>
           <ThemeProvider theme={theme}>
             <CssBaseline />
-            <AuthProvider>
+            <AuthProvider enableMockAuth={process.env.NEXT_PUBLIC_ENABLE_MOCK_AUTH === 'true'}>
               {children}
             </AuthProvider>
             <ReactQueryDevtools initialIsOpen={false} />

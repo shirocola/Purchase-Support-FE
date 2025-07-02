@@ -13,6 +13,7 @@ import {
   CircularProgress,
   useTheme,
   useMediaQuery,
+  Chip,
 } from '@mui/material';
 import { useAuth } from '@/lib/contexts/auth-context';
 
@@ -23,6 +24,8 @@ interface LoginFormErrors {
 interface AuthResponse {
   success: boolean;
   authUrl?: string;
+  token?: string;
+  user?: any;
   message?: string;
 }
 
@@ -35,6 +38,11 @@ export default function LoginPage() {
   
   const [errors, setErrors] = useState<LoginFormErrors>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
+  
+  // Check if mock auth is enabled
+  const isMockAuthEnabled = process.env.NEXT_PUBLIC_ENABLE_MOCK_AUTH === 'true';
+  const apiBaseUrl = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:3001/api';
+  const testAuthCode = process.env.NEXT_PUBLIC_TEST_AUTH_CODE || 'admin-auth-code';
   
   // Redirect if already authenticated
   useEffect(() => {
@@ -59,15 +67,33 @@ export default function LoginPage() {
     );
   }
   
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    
-    setIsSubmitting(true);
-    setErrors({});
-    
+  const handleTestLogin = async () => {
+    try {
+      // Use auth context mock login instead of making HTTP requests
+      await login({
+        username: 'material.control', // Default test user
+        password: 'password'
+      });
+      
+      // Auth context will handle the authentication and redirect will happen via useEffect
+      console.log('Mock login successful');
+      
+    } catch (error) {
+      console.error('Test login failed:', error);
+      
+      let errorMessage = 'เกิดข้อผิดพลาดในการเข้าสู่ระบบแบบทดสอบ';
+      if (error instanceof Error) {
+        errorMessage = error.message;
+      }
+      
+      setErrors({ general: errorMessage });
+      setIsSubmitting(false);
+    }
+  };
+  
+  const handleAzureLogin = async () => {
     try {
       // Call backend to get Azure AD authentication URL
-      const apiBaseUrl = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:3001/api';
       const response = await fetch(`${apiBaseUrl}/auth/login`, {
         method: 'GET',
         headers: {
@@ -90,7 +116,7 @@ export default function LoginPage() {
       }
       
     } catch (error) {
-      console.error('Login failed:', error);
+      console.error('Azure login failed:', error);
       
       let errorMessage = 'เกิดข้อผิดพลาดในการเข้าสู่ระบบ';
       if (error instanceof Error) {
@@ -107,6 +133,19 @@ export default function LoginPage() {
       
       setErrors({ general: errorMessage });
       setIsSubmitting(false);
+    }
+  };
+  
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    setIsSubmitting(true);
+    setErrors({});
+    
+    if (isMockAuthEnabled) {
+      await handleTestLogin();
+    } else {
+      await handleAzureLogin();
     }
   };
   
@@ -144,6 +183,18 @@ export default function LoginPage() {
                 }}
               />
             </Box>
+            
+            {/* Environment indicator */}
+            {isMockAuthEnabled && (
+              <Box sx={{ mb: 2 }}>
+                <Chip
+                  label="TEST MODE"
+                  color="warning"
+                  variant="outlined"
+                  size="small"
+                />
+              </Box>
+            )}
           </Box>
           
           {/* Error Alert */}
@@ -170,15 +221,15 @@ export default function LoginPage() {
                 mb: 2,
                 py: 1.5,
                 fontSize: '1.1rem',
-                backgroundColor: 'rgb(15, 17, 119)',
+                backgroundColor: isMockAuthEnabled ? 'rgb(255, 152, 0)' : 'rgb(15, 17, 119)',
                 borderColor: 'rgb(255, 255, 255)',
                 border: '2px solid rgb(255, 255, 255)',
                 '&:hover': {
-                  backgroundColor: 'rgb(12, 14, 95)',
+                  backgroundColor: isMockAuthEnabled ? 'rgb(230, 136, 0)' : 'rgb(12, 14, 95)',
                   borderColor: 'rgb(255, 255, 255)',
                 },
                 '&:disabled': {
-                  backgroundColor: 'rgba(15, 17, 119, 0.5)',
+                  backgroundColor: isMockAuthEnabled ? 'rgba(255, 152, 0, 0.5)' : 'rgba(15, 17, 119, 0.5)',
                   borderColor: 'rgba(255, 255, 255, 0.5)',
                 },
               }}
@@ -187,12 +238,18 @@ export default function LoginPage() {
               {isSubmitting ? (
                 <>
                   <CircularProgress size={20} sx={{ mr: 1 }} />
-                  กำลังเชื่อมต่อกับ Azure AD...
+                  {isMockAuthEnabled ? 'กำลังเข้าสู่ระบบแบบทดสอบ...' : 'กำลังเชื่อมต่อกับ Azure AD...'}
                 </>
               ) : (
-                'เข้าสู่ระบบด้วย Azure AD'
+                isMockAuthEnabled ? 'เข้าสู่ระบบแบบทดสอบ (Test Login)' : 'เข้าสู่ระบบด้วย Azure AD'
               )}
             </Button>
+            
+            {isMockAuthEnabled && (
+              <Typography variant="body2" color="text.secondary" textAlign="center" sx={{ mt: 1 }}>
+                ระบบจะใช้รหัสทดสอบ: {testAuthCode}
+              </Typography>
+            )}
           </Box>
           
           {/* Footer */}
@@ -200,6 +257,11 @@ export default function LoginPage() {
             <Typography variant="body2" color="text.secondary">
               © 2024 Purchase Order Management System
             </Typography>
+            {isMockAuthEnabled && (
+              <Typography variant="caption" color="warning.main" sx={{ display: 'block', mt: 1 }}>
+                Development/Test Environment
+              </Typography>
+            )}
           </Box>
         </Paper>
       </Container>
