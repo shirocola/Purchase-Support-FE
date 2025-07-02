@@ -83,9 +83,17 @@ export function AuthProvider({
   // Start with no user - let them login first
   const [user, setUser] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState(true); // Start with loading to check existing auth
+  const [isHydrated, setIsHydrated] = useState(false); // Track if component has hydrated
 
-  // Check for existing authentication on mount
+  // First effect: Mark as hydrated after mount (prevents SSR/CSR mismatch)
   useEffect(() => {
+    setIsHydrated(true);
+  }, []);
+
+  // Second effect: Check for existing authentication only after hydration
+  useEffect(() => {
+    if (!isHydrated) return; // Don't run until hydrated
+    
     const checkExistingAuth = () => {
       console.log('Checking existing auth...', { shouldUseMockAuth, defaultRole });
       
@@ -97,9 +105,9 @@ export function AuthProvider({
         setUser(mockUser);
       } else {
         console.log('Using real auth mode');
-        // Check for existing token and user data
-        const token = localStorage.getItem('authToken');
-        const userData = localStorage.getItem('userData');
+        // Check for existing token and user data (safe after hydration)
+        const token = typeof window !== 'undefined' ? localStorage.getItem('authToken') : null;
+        const userData = typeof window !== 'undefined' ? localStorage.getItem('userData') : null;
         
         console.log('Checking localStorage:', { 
           hasToken: !!token, 
@@ -115,8 +123,10 @@ export function AuthProvider({
             setUser(parsedUser);
           } catch (error) {
             console.error('Failed to parse stored user data:', error);
-            localStorage.removeItem('authToken');
-            localStorage.removeItem('userData');
+            if (typeof window !== 'undefined') {
+              localStorage.removeItem('authToken');
+              localStorage.removeItem('userData');
+            }
           }
         } else {
           console.log('No existing auth found');
@@ -128,7 +138,7 @@ export function AuthProvider({
     };
 
     checkExistingAuth();
-  }, [shouldUseMockAuth, defaultRole]);
+  }, [isHydrated, shouldUseMockAuth, defaultRole]);
 
   const login = async (credentials: LoginRequest) => {
     setIsLoading(true);
@@ -146,11 +156,16 @@ export function AuthProvider({
         
         if (foundUser && credentials.password === 'password') {
           setUser(foundUser);
+          // Store in localStorage for consistency (even in mock mode)
+          if (typeof window !== 'undefined') {
+            localStorage.setItem('authToken', 'mock-token');
+            localStorage.setItem('userData', JSON.stringify(foundUser));
+          }
         } else {
           throw new Error('Invalid credentials');
         }
       } else {
-        // Real API login
+        // Real API login - tokens and user data are stored by AuthService
         const loginResponse = await AuthService.login(credentials);
         setUser(loginResponse.user);
       }
@@ -168,6 +183,13 @@ export function AuthProvider({
     try {
       if (!shouldUseMockAuth) {
         await AuthService.logout();
+      }
+      
+      // Clear localStorage safely
+      if (typeof window !== 'undefined') {
+        localStorage.removeItem('authToken');
+        localStorage.removeItem('userData');
+        localStorage.removeItem('refreshToken');
       }
     } catch (error) {
       console.warn('Logout API call failed:', error);

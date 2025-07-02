@@ -1,15 +1,12 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import {
   AppBar,
   Box,
-  IconButton,
   Toolbar,
   Typography,
-  useTheme,
-  useMediaQuery,
   Button,
   Menu,
   MenuItem,
@@ -17,14 +14,12 @@ import {
   Divider,
 } from '@mui/material';
 import {
-  Menu as MenuIcon,
   AccountCircle,
   SwapHoriz,
   Logout,
   Person,
 } from '@mui/icons-material';
 import { useAuth } from '@/lib/contexts/auth-context';
-import { Sidebar } from './Sidebar';
 import { UserRole } from '@/lib/types/po';
 
 interface MainLayoutProps {
@@ -41,24 +36,9 @@ const roleLabels: Record<UserRole, string> = {
 export function MainLayout({ children }: MainLayoutProps) {
   const { user, switchRole, logout } = useAuth();
   const router = useRouter();
-  const theme = useTheme();
-  const isMobile = useMediaQuery(theme.breakpoints.down('md'));
   
-  // Always initialize state consistently, regardless of other values
-  const [sidebarOpen, setSidebarOpen] = useState(false);
   const [roleMenuAnchor, setRoleMenuAnchor] = useState<null | HTMLElement>(null);
   const [userMenuAnchor, setUserMenuAnchor] = useState<null | HTMLElement>(null);
-  
-  // Set sidebar open state after component mounts or when isMobile changes
-  useEffect(() => {
-    setSidebarOpen(!isMobile);
-  }, [isMobile]);
-
-  const drawerWidth = 280;
-
-  const handleSidebarToggle = () => {
-    setSidebarOpen(!sidebarOpen);
-  };
 
   const handleRoleMenuOpen = (event: React.MouseEvent<HTMLElement>) => {
     setRoleMenuAnchor(event.currentTarget);
@@ -98,24 +78,14 @@ export function MainLayout({ children }: MainLayoutProps) {
   if (!user) {
     // For public pages, render without user-specific features
     return (
-      <Box sx={{ display: 'flex', minHeight: '100vh' }}>
+      <Box sx={{ display: 'flex', flexDirection: 'column', minHeight: '100vh' }}>
         <AppBar
           position="fixed"
           sx={{
-            zIndex: theme.zIndex.drawer + 1,
             backgroundColor: 'rgb(15, 17, 119)',
           }}
         >
           <Toolbar>
-            <IconButton
-              color="inherit"
-              aria-label="open drawer"
-              edge="start"
-              onClick={handleSidebarToggle}
-              sx={{ mr: 2 }}
-            >
-              <MenuIcon />
-            </IconButton>
             <Typography variant="h6" noWrap component="div" sx={{ flexGrow: 1 }}>
               ระบบจัดการใบสั่งซื้อ
             </Typography>
@@ -135,29 +105,15 @@ export function MainLayout({ children }: MainLayoutProps) {
           </Toolbar>
         </AppBar>
 
-        {/* Sidebar for public pages */}
-        <Sidebar 
-          open={sidebarOpen} 
-          onClose={() => setSidebarOpen(false)}
-          isMobile={isMobile}
-          drawerWidth={drawerWidth}
-        />
-
         {/* Main content */}
         <Box
           component="main"
           sx={{
             flexGrow: 1,
             p: 3,
-            width: { md: `calc(100% - ${sidebarOpen ? drawerWidth : 0}px)` },
-            ml: { md: sidebarOpen ? `${drawerWidth}px` : 0 },
-            transition: theme.transitions.create(['margin', 'width'], {
-              easing: theme.transitions.easing.sharp,
-              duration: theme.transitions.duration.leavingScreen,
-            }),
+            mt: 8, // Account for AppBar height
           }}
         >
-          <Toolbar />
           {children}
         </Box>
       </Box>
@@ -165,30 +121,15 @@ export function MainLayout({ children }: MainLayoutProps) {
   }
 
   return (
-    <Box sx={{ display: 'flex', height: '100vh' }}>
+    <Box sx={{ display: 'flex', flexDirection: 'column', minHeight: '100vh' }}>
       {/* App Bar */}
       <AppBar
         position="fixed"
         sx={{
-          width: { md: sidebarOpen ? `calc(100% - ${drawerWidth}px)` : '100%' },
-          ml: { md: sidebarOpen ? `${drawerWidth}px` : 0 },
-          transition: theme.transitions.create(['width', 'margin'], {
-            easing: theme.transitions.easing.sharp,
-            duration: theme.transitions.duration.leavingScreen,
-          }),
+          backgroundColor: 'rgb(15, 17, 119)',
         }}
       >
         <Toolbar>
-          <IconButton
-            color="inherit"
-            aria-label="open sidebar"
-            edge="start"
-            onClick={handleSidebarToggle}
-            sx={{ mr: 2 }}
-          >
-            <MenuIcon />
-          </IconButton>
-          
           <Typography variant="h6" component="div" sx={{ flexGrow: 1 }}>
             ระบบจัดการใบสั่งซื้อ
           </Typography>
@@ -310,35 +251,18 @@ export function MainLayout({ children }: MainLayoutProps) {
         </Toolbar>
       </AppBar>
 
-      {/* Sidebar */}
-      <Sidebar
-        open={sidebarOpen}
-        onClose={() => setSidebarOpen(false)}
-        variant={isMobile ? 'temporary' : 'persistent'}
-      />
-
       {/* Main Content */}
       <Box
         component="main"
         sx={{
           flexGrow: 1,
-          width: { md: sidebarOpen ? `calc(100% - ${drawerWidth}px)` : '100%' },
-          ml: { md: sidebarOpen && !isMobile ? `${drawerWidth}px` : 0 },
-          transition: theme.transitions.create(['width', 'margin'], {
-            easing: theme.transitions.easing.sharp,
-            duration: theme.transitions.duration.leavingScreen,
-          }),
+          p: 3,
+          mt: 8, // Account for AppBar height
           bgcolor: 'background.default',
           overflow: 'auto',
         }}
       >
-        {/* Toolbar spacing */}
-        <Toolbar />
-        
-        {/* Page Content */}
-        <Box sx={{ height: 'calc(100vh - 64px)', overflow: 'auto' }}>
-          {children}
-        </Box>
+        {children}
       </Box>
     </Box>
   );

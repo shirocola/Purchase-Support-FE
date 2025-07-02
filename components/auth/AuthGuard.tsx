@@ -25,9 +25,15 @@ export function AuthGuard({
   const router = useRouter();
   const pathname = usePathname();
   const [hasRedirected, setHasRedirected] = useState(false);
+  const [isHydrated, setIsHydrated] = useState(false);
+  
+  // Track hydration to prevent SSR/CSR mismatch
+  useEffect(() => {
+    setIsHydrated(true);
+  }, []);
   
   useEffect(() => {
-    if (isLoading || hasRedirected) return; // Don't redirect while loading or already redirected
+    if (!isHydrated || isLoading || hasRedirected) return; // Don't redirect while loading or already redirected
     
     if (requireAuth && !isAuthenticated) {
       // User needs to be authenticated but isn't
@@ -43,10 +49,10 @@ export function AuthGuard({
       router.push(redirectTo || '/');
       return;
     }
-  }, [isLoading, isAuthenticated, requireAuth, router, pathname, redirectTo, hasRedirected]);
+  }, [isHydrated, isLoading, isAuthenticated, requireAuth, router, pathname, redirectTo, hasRedirected]);
   
-  // Show loading state while checking auth or while redirecting
-  if (isLoading || hasRedirected) {
+  // Show loading state while checking auth, during hydration, or while redirecting
+  if (!isHydrated || isLoading || hasRedirected) {
     return fallback || <AuthLoadingFallback />;
   }
   
