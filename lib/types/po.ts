@@ -164,3 +164,33 @@ export interface POAcknowledgeData {
   lastEmailSentAt?: string;
   lastError?: string;
 }
+
+// PO List filtering and sorting
+export interface POListFilter {
+  search?: string;
+  status?: POStatus[];
+  vendorId?: string;
+  dateFrom?: string;
+  dateTo?: string;
+  createdBy?: string;
+}
+
+export interface POListSortOptions {
+  sortBy: 'poNumber' | 'title' | 'status' | 'vendor' | 'totalAmount' | 'createdAt' | 'requiredDate';
+  sortOrder: 'asc' | 'desc';
+}
+
+export interface POListParams {
+  page?: number;
+  limit?: number;
+  filter?: POListFilter;
+  sort?: POListSortOptions;
+}
+
+export interface POListResponse {
+  items: PurchaseOrder[];
+  total: number;
+  page: number;
+  limit: number;
+  totalPages: number;
+}

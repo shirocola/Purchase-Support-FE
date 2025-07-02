@@ -32,14 +32,16 @@ export default function Home() {
           <CardContent sx={{ textAlign: 'center', p: 3 }}>
             <ShoppingCart sx={{ fontSize: 48, color: 'primary.main', mb: 2 }} />
             <Typography variant="h6" gutterBottom>
-              จัดการ PO
+              รายการ PO
             </Typography>
             <Typography variant="body2" color="text.secondary" sx={{ mb: 3 }}>
-              สร้าง แก้ไข และจัดการใบสั่งซื้อทั้งหมด
+              ดูรายการใบสั่งซื้อทั้งหมด พร้อมการค้นหาและกรองข้อมูล
             </Typography>
-            <Button variant="outlined" fullWidth disabled>
-              เร็วๆ นี้
-            </Button>
+            <Link href="/po/list" passHref>
+              <Button variant="contained" fullWidth>
+                ดูรายการ PO
+              </Button>
+            </Link>
           </CardContent>
         </Card>
 

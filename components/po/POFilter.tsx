@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useCallback } from 'react';
 import {
   Box,
   Card,
@@ -18,6 +18,8 @@ import {
   useTheme,
   useMediaQuery,
   Stack,
+  Chip,
+  Autocomplete,
 } from '@mui/material';
 import {
   Search as SearchIcon,
@@ -26,42 +28,44 @@ import {
   ExpandMore as ExpandMoreIcon,
   ExpandLess as ExpandLessIcon,
 } from '@mui/icons-material';
+import { POStatus } from '@/lib/types/po';
 
 export interface POFilterValues {
-  poNumber: string;
-  poDate: string;
-  deliveryDate: string;
-  materialCode: string;
+  search?: string;
+  status?: POStatus[];
+  vendorId?: string;
+  dateFrom?: string;
+  dateTo?: string;
+  createdBy?: string;
 }
 
 interface POFilterProps {
   initialValues?: Partial<POFilterValues>;
   onFilter: (filters: POFilterValues) => void;
   onReset: () => void;
-  materialCodes?: string[];
+  vendors?: Array<{ id: string; name: string }>;
+  users?: Array<{ id: string; name: string }>;
   loading?: boolean;
   collapsible?: boolean;
   className?: string;
 }
 
-const defaultMaterialCodes = [
-  'MAT-001',
-  'MAT-002', 
-  'MAT-003',
-  'MAT-004',
-  'MAT-005',
-  'ELE-001',
-  'ELE-002',
-  'MEC-001',
-  'MEC-002',
-  'CHE-001',
+const statusOptions = [
+  { value: POStatus.DRAFT, label: 'แบบร่าง', color: 'default' as const },
+  { value: POStatus.PENDING_APPROVAL, label: 'รออนุมัติ', color: 'warning' as const },
+  { value: POStatus.APPROVED, label: 'อนุมัติแล้ว', color: 'success' as const },
+  { value: POStatus.SENT, label: 'ส่งแล้ว', color: 'info' as const },
+  { value: POStatus.ACKNOWLEDGED, label: 'รับทราบแล้ว', color: 'success' as const },
+  { value: POStatus.REJECTED, label: 'ปฏิเสธ', color: 'error' as const },
+  { value: POStatus.CANCELLED, label: 'ยกเลิก', color: 'error' as const },
 ];
 
 export function POFilter({
   initialValues = {},
   onFilter,
   onReset,
-  materialCodes = defaultMaterialCodes,
+  vendors = [],
+  users = [],
   loading = false,
   collapsible = false,
   className,
@@ -71,50 +75,77 @@ export function POFilter({
   
   const [expanded, setExpanded] = useState(!collapsible);
   const [filters, setFilters] = useState<POFilterValues>({
-    poNumber: initialValues.poNumber || '',
-    poDate: initialValues.poDate || '',
-    deliveryDate: initialValues.deliveryDate || '',
-    materialCode: initialValues.materialCode || '',
+    search: initialValues.search || '',
+    status: initialValues.status || [],
+    vendorId: initialValues.vendorId || '',
+    dateFrom: initialValues.dateFrom || '',
+    dateTo: initialValues.dateTo || '',
+    createdBy: initialValues.createdBy || '',
   });
 
-  const handleInputChange = (field: keyof POFilterValues, value: string) => {
+  const handleInputChange = useCallback((field: keyof POFilterValues, value: any) => {
     setFilters(prev => ({
       ...prev,
       [field]: value,
     }));
-  };
+  }, []);
 
-  const handleMaterialCodeChange = (event: SelectChangeEvent<string>) => {
-    handleInputChange('materialCode', event.target.value);
-  };
+  const handleStatusChange = useCallback((event: any, newValue: POStatus[]) => {
+    handleInputChange('status', newValue);
+  }, [handleInputChange]);
 
-  const handleSearch = () => {
-    onFilter(filters);
-  };
+  const handleVendorChange = useCallback((event: SelectChangeEvent<string>) => {
+    handleInputChange('vendorId', event.target.value);
+  }, [handleInputChange]);
 
-  const handleReset = () => {
+  const handleUserChange = useCallback((event: SelectChangeEvent<string>) => {
+    handleInputChange('createdBy', event.target.value);
+  }, [handleInputChange]);
+
+  const handleSearch = useCallback(() => {
+    // Clean up empty values
+    const cleanFilters: POFilterValues = {};
+    
+    Object.entries(filters).forEach(([key, value]) => {
+      if (value !== '' && value !== null && value !== undefined) {
+        if (Array.isArray(value) && value.length > 0) {
+          (cleanFilters as any)[key] = value;
+        } else if (!Array.isArray(value)) {
+          (cleanFilters as any)[key] = value;
+        }
+      }
+    });
+    
+    onFilter(cleanFilters);
+  }, [filters, onFilter]);
+
+  const handleReset = useCallback(() => {
     const resetFilters: POFilterValues = {
-      poNumber: '',
-      poDate: '',
-      deliveryDate: '',
-      materialCode: '',
+      search: '',
+      status: [],
+      vendorId: '',
+      dateFrom: '',
+      dateTo: '',
+      createdBy: '',
     };
     setFilters(resetFilters);
     onReset();
-  };
+  }, [onReset]);
 
-  const handleToggleExpanded = () => {
+  const handleToggleExpanded = useCallback(() => {
     setExpanded(!expanded);
-  };
+  }, [expanded]);
 
-  const hasActiveFilters = () => {
+  const hasActiveFilters = useCallback(() => {
     return !!(
-      filters.poNumber ||
-      filters.poDate ||
-      filters.deliveryDate ||
-      filters.materialCode
+      filters.search ||
+      (filters.status && filters.status.length > 0) ||
+      filters.vendorId ||
+      filters.dateFrom ||
+      filters.dateTo ||
+      filters.createdBy
     );
-  };
+  }, [filters]);
 
   const filterContent = (
     <CardContent>
@@ -123,18 +154,18 @@ export function POFilter({
           display: 'grid',
           gridTemplateColumns: isMobile 
             ? '1fr' 
-            : 'repeat(auto-fit, minmax(250px, 1fr))',
+            : 'repeat(auto-fit, minmax(280px, 1fr))',
           gap: 2,
           mb: 3,
         }}
       >
-        {/* PO Number */}
+        {/* Search */}
         <TextField
           fullWidth
-          label="เลขที่ PO"
-          placeholder="ค้นหาเลขที่ PO..."
-          value={filters.poNumber}
-          onChange={(e) => handleInputChange('poNumber', e.target.value)}
+          label="ค้นหา"
+          placeholder="ค้นหาเลขที่ PO, ชื่อ, หรือ vendor..."
+          value={filters.search}
+          onChange={(e) => handleInputChange('search', e.target.value)}
           variant="outlined"
           size="small"
           InputProps={{
@@ -142,52 +173,102 @@ export function POFilter({
           }}
         />
 
-        {/* PO Date */}
-        <TextField
-          fullWidth
-          label="วันที่ PO"
-          type="date"
-          value={filters.poDate}
-          onChange={(e) => handleInputChange('poDate', e.target.value)}
-          variant="outlined"
+        {/* Status */}
+        <Autocomplete
+          multiple
           size="small"
-          InputLabelProps={{
-            shrink: true,
-          }}
+          options={statusOptions.map(opt => opt.value)}
+          value={filters.status || []}
+          onChange={handleStatusChange}
+          getOptionLabel={(option) => statusOptions.find(s => s.value === option)?.label || option}
+          renderInput={(params) => (
+            <TextField {...params} label="สถานะ" placeholder="เลือกสถานะ..." />
+          )}
+          renderTags={(value, getTagProps) =>
+            value.map((option, index) => {
+              const statusOption = statusOptions.find(s => s.value === option);
+              return (
+                <Chip
+                  {...getTagProps({ index })}
+                  key={option}
+                  label={statusOption?.label || option}
+                  color={statusOption?.color || 'default'}
+                  size="small"
+                />
+              );
+            })
+          }
         />
 
-        {/* Delivery Date */}
-        <TextField
-          fullWidth
-          label="วันที่จัดส่ง"
-          type="date"
-          value={filters.deliveryDate}
-          onChange={(e) => handleInputChange('deliveryDate', e.target.value)}
-          variant="outlined"
-          size="small"
-          InputLabelProps={{
-            shrink: true,
-          }}
-        />
-
-        {/* Material Code */}
-        <FormControl fullWidth size="small">
-          <InputLabel>รหัสวัสดุ</InputLabel>
-          <Select
-            value={filters.materialCode}
-            label="รหัสวัสดุ"
-            onChange={handleMaterialCodeChange}
-          >
-            <MenuItem value="">
-              <em>ทั้งหมด</em>
-            </MenuItem>
-            {materialCodes.map((code) => (
-              <MenuItem key={code} value={code}>
-                {code}
+        {/* Vendor */}
+        {vendors.length > 0 && (
+          <FormControl fullWidth size="small">
+            <InputLabel>ผู้ขาย</InputLabel>
+            <Select
+              value={filters.vendorId || ''}
+              label="ผู้ขาย"
+              onChange={handleVendorChange}
+            >
+              <MenuItem value="">
+                <em>ทั้งหมด</em>
               </MenuItem>
-            ))}
-          </Select>
-        </FormControl>
+              {vendors.map((vendor) => (
+                <MenuItem key={vendor.id} value={vendor.id}>
+                  {vendor.name}
+                </MenuItem>
+              ))}
+            </Select>
+          </FormControl>
+        )}
+
+        {/* Date From */}
+        <TextField
+          fullWidth
+          label="วันที่เริ่มต้น"
+          type="date"
+          value={filters.dateFrom}
+          onChange={(e) => handleInputChange('dateFrom', e.target.value)}
+          variant="outlined"
+          size="small"
+          InputLabelProps={{
+            shrink: true,
+          }}
+        />
+
+        {/* Date To */}
+        <TextField
+          fullWidth
+          label="วันที่สิ้นสุด"
+          type="date"
+          value={filters.dateTo}
+          onChange={(e) => handleInputChange('dateTo', e.target.value)}
+          variant="outlined"
+          size="small"
+          InputLabelProps={{
+            shrink: true,
+          }}
+        />
+
+        {/* Created By */}
+        {users.length > 0 && (
+          <FormControl fullWidth size="small">
+            <InputLabel>ผู้สร้าง</InputLabel>
+            <Select
+              value={filters.createdBy || ''}
+              label="ผู้สร้าง"
+              onChange={handleUserChange}
+            >
+              <MenuItem value="">
+                <em>ทั้งหมด</em>
+              </MenuItem>
+              {users.map((user) => (
+                <MenuItem key={user.id} value={user.id}>
+                  {user.name}
+                </MenuItem>
+              ))}
+            </Select>
+          </FormControl>
+        )}
       </Box>
 
       {/* Action Buttons */}

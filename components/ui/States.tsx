@@ -63,12 +63,16 @@ export function ErrorState({
 
 interface EmptyStateProps {
   message?: string;
+  description?: string;
   icon?: React.ReactNode;
+  action?: React.ReactNode;
 }
 
 export function EmptyState({ 
   message = 'ไม่พบข้อมูล',
-  icon 
+  description,
+  icon,
+  action
 }: EmptyStateProps) {
   return (
     <Box
@@ -84,6 +88,16 @@ export function EmptyState({
       <Typography variant="body1" color="text.secondary" textAlign="center">
         {message}
       </Typography>
+      {description && (
+        <Typography variant="body2" color="text.secondary" textAlign="center">
+          {description}
+        </Typography>
+      )}
+      {action && (
+        <Box sx={{ mt: 1 }}>
+          {action}
+        </Box>
+      )}
     </Box>
   );
 }

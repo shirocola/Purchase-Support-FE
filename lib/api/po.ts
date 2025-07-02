@@ -1,5 +1,5 @@
 import axios, { AxiosResponse } from 'axios';
-import { PurchaseOrder, APIResponse, POEditFormData, POEmailFormData, POEmailStatus, POAcknowledgeData, AuditLogEntry } from '@/lib/types/po';
+import { PurchaseOrder, APIResponse, POEditFormData, POEmailFormData, POEmailStatus, POAcknowledgeData, AuditLogEntry, POListParams, POListResponse } from '@/lib/types/po';
 
 // Configure axios instance
 const api = axios.create({
@@ -45,6 +45,41 @@ api.interceptors.response.use(
 );
 
 export class POService {
+  /**
+   * Get PO list with filtering, sorting, and pagination
+   */
+  static async getPOList(params: POListParams = {}): Promise<POListResponse> {
+    const queryParams = new URLSearchParams();
+    
+    // Add pagination
+    if (params.page) queryParams.append('page', params.page.toString());
+    if (params.limit) queryParams.append('limit', params.limit.toString());
+    
+    // Add filters
+    if (params.filter) {
+      if (params.filter.search) queryParams.append('search', params.filter.search);
+      if (params.filter.status?.length) {
+        params.filter.status.forEach(status => queryParams.append('status', status));
+      }
+      if (params.filter.vendorId) queryParams.append('vendorId', params.filter.vendorId);
+      if (params.filter.dateFrom) queryParams.append('dateFrom', params.filter.dateFrom);
+      if (params.filter.dateTo) queryParams.append('dateTo', params.filter.dateTo);
+      if (params.filter.createdBy) queryParams.append('createdBy', params.filter.createdBy);
+    }
+    
+    // Add sorting
+    if (params.sort) {
+      queryParams.append('sortBy', params.sort.sortBy);
+      queryParams.append('sortOrder', params.sort.sortOrder);
+    }
+    
+    const response: AxiosResponse<APIResponse<POListResponse>> = await api.get(`/po?${queryParams.toString()}`);
+    if (!response.data.success) {
+      throw new Error(response.data.message || 'Failed to fetch PO list');
+    }
+    return response.data.data!;
+  }
+
   /**
    * Get PO by ID
    */

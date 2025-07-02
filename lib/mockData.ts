@@ -218,3 +218,125 @@ export const mockStatusHistory = [
     completed: false,
   },
 ];
+
+// Mock data for PO list
+export const mockPOList: PurchaseOrder[] = [
+  {
+    ...mockPO,
+    id: 'po-001',
+    poNumber: 'PO-2024-001',
+    title: 'Office Supplies for Q1',
+    status: POStatus.SENT,
+    totalAmount: 74500,
+    createdAt: '2024-01-15T00:00:00Z',
+    updatedAt: '2024-01-15T10:30:00Z',
+  },
+  {
+    ...mockPO,
+    id: 'po-002',
+    poNumber: 'PO-2024-002',
+    title: 'IT Equipment Procurement',
+    status: POStatus.ACKNOWLEDGED,
+    totalAmount: 125000,
+    vendor: {
+      id: 'vendor-002',
+      name: 'Tech Solutions Ltd.',
+      email: 'sales@techsolutions.com',
+      contactPerson: 'Alice Johnson',
+      phone: '+66-2-987-6543',
+      address: '456 Technology Park, Bangkok 10110',
+    },
+    createdAt: '2024-01-10T00:00:00Z',
+    updatedAt: '2024-01-12T14:20:00Z',
+  },
+  {
+    ...mockPO,
+    id: 'po-003',
+    poNumber: 'PO-2024-003',
+    title: 'Manufacturing Raw Materials',
+    status: POStatus.APPROVED,
+    totalAmount: 250000,
+    vendor: {
+      id: 'vendor-003',
+      name: 'Industrial Materials Co.',
+      email: 'orders@indmat.com',
+      contactPerson: 'Bob Wilson',
+      phone: '+66-2-555-0123',
+      address: '789 Industrial Zone, Samut Prakan 10280',
+    },
+    createdAt: '2024-01-08T00:00:00Z',
+    updatedAt: '2024-01-09T16:45:00Z',
+  },
+  {
+    ...mockPO,
+    id: 'po-004',
+    poNumber: 'PO-2024-004',
+    title: 'Facility Maintenance Services',
+    status: POStatus.PENDING_APPROVAL,
+    totalAmount: 85000,
+    vendor: {
+      id: 'vendor-004',
+      name: 'Maintenance Pro Services',
+      email: 'service@mainpro.com',
+      contactPerson: 'Carol Davis',
+      phone: '+66-2-444-5678',
+      address: '321 Service Center, Bangkok 10400',
+    },
+    createdAt: '2024-01-05T00:00:00Z',
+    updatedAt: '2024-01-05T11:15:00Z',
+  },
+  {
+    ...mockPO,
+    id: 'po-005',
+    poNumber: 'PO-2024-005',
+    title: 'Security Equipment Upgrade',
+    status: POStatus.DRAFT,
+    totalAmount: 150000,
+    vendor: {
+      id: 'vendor-005',
+      name: 'SecureTech Systems',
+      email: 'info@securetech.com',
+      contactPerson: 'David Lee',
+      phone: '+66-2-333-9876',
+      address: '654 Security Plaza, Bangkok 10310',
+    },
+    createdAt: '2024-01-03T00:00:00Z',
+    updatedAt: '2024-01-03T09:00:00Z',
+  },
+  {
+    ...mockPO,
+    id: 'po-006',
+    poNumber: 'PO-2024-006',
+    title: 'Cleaning Supplies Monthly',
+    status: POStatus.CANCELLED,
+    totalAmount: 25000,
+    vendor: {
+      id: 'vendor-006',
+      name: 'CleanPro Supplies',
+      email: 'sales@cleanpro.com',
+      contactPerson: 'Emma Thompson',
+      phone: '+66-2-222-1111',
+      address: '987 Clean Street, Bangkok 10200',
+    },
+    createdAt: '2024-01-01T00:00:00Z',
+    updatedAt: '2024-01-02T13:30:00Z',
+  },
+];
+
+// Mock vendors list for filter
+export const mockVendors = [
+  { id: 'vendor-001', name: 'ABC Supplies Co., Ltd.' },
+  { id: 'vendor-002', name: 'Tech Solutions Ltd.' },
+  { id: 'vendor-003', name: 'Industrial Materials Co.' },
+  { id: 'vendor-004', name: 'Maintenance Pro Services' },
+  { id: 'vendor-005', name: 'SecureTech Systems' },
+  { id: 'vendor-006', name: 'CleanPro Supplies' },
+];
+
+// Mock users list for filter
+export const mockUsers = [
+  { id: 'john.smith', name: 'John Smith' },
+  { id: 'jane.doe', name: 'Jane Doe' },
+  { id: 'bob.wilson', name: 'Bob Wilson' },
+  { id: 'alice.johnson', name: 'Alice Johnson' },
+];
