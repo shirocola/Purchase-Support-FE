@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
+import Image from 'next/image';
 import {
   Box,
   Container,
@@ -21,7 +22,6 @@ import {
   VisibilityOff,
   Person,
   Lock,
-  Business,
 } from '@mui/icons-material';
 import { useAuth } from '@/lib/contexts/auth-context';
 
@@ -153,9 +153,7 @@ export default function LoginPage() {
         minHeight: '100vh',
         display: 'flex',
         alignItems: 'center',
-        background: theme.palette.mode === 'light' 
-          ? 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)'
-          : 'linear-gradient(135deg, #2c3e50 0%, #34495e 100%)',
+        background: 'linear-gradient(to right, #D0EDFF, #E5E4E2)',
       }}
     >
       <Container maxWidth="sm">
@@ -170,14 +168,19 @@ export default function LoginPage() {
         >
           {/* Header */}
           <Box textAlign="center" mb={4}>
-            <Business 
-              sx={{ 
-                fontSize: 48, 
-                color: theme.palette.primary.main, 
-                mb: 2 
-              }}
-              aria-label="Business" 
-            />
+            <Box sx={{ mb: 2, display: 'flex', justifyContent: 'center' }}>
+              <Image
+                src="/PurchaseSupport.Logo.svg"
+                alt="Purchase Support Logo"
+                width={240}
+                height={120}
+                priority
+                style={{
+                  maxWidth: '100%',
+                  height: 'auto',
+                }}
+              />
+            </Box>
             <Typography 
               variant={isMobile ? 'h5' : 'h4'} 
               component="h1" 
@@ -190,7 +193,7 @@ export default function LoginPage() {
               variant="body1" 
               color="text.secondary"
             >
-              เข้าสู่ระบบเพื่อเริ่มการทำงาน
+              เข้าสู่ระบบเพื่อเริ่มการทำงาน (AD Authentication)
             </Typography>
           </Box>
           
@@ -274,6 +277,17 @@ export default function LoginPage() {
                 mb: 2,
                 py: 1.5,
                 fontSize: '1.1rem',
+                backgroundColor: 'rgb(15, 17, 119)',
+                borderColor: 'rgb(255, 255, 255)',
+                border: '2px solid rgb(255, 255, 255)',
+                '&:hover': {
+                  backgroundColor: 'rgb(12, 14, 95)',
+                  borderColor: 'rgb(255, 255, 255)',
+                },
+                '&:disabled': {
+                  backgroundColor: 'rgba(15, 17, 119, 0.5)',
+                  borderColor: 'rgba(255, 255, 255, 0.5)',
+                },
               }}
               data-testid="login-button"
             >

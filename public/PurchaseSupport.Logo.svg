@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="400" height="200" viewBox="0 0 400 200" xmlns="http://www.w3.org/2000/svg">
+  <!-- Main blue rounded rectangle background -->
+  <rect x="20" y="40" width="320" height="120" rx="30" ry="30" fill="#1976d2" stroke="none"/>
+  
+  <!-- Purchase text -->
+  <text x="200" y="105" font-family="Arial, sans-serif" font-size="32" font-weight="bold" 
+        text-anchor="middle" fill="white" font-style="italic">
+    Purchase
+  </text>
+  
+  <!-- Support text -->
+  <text x="200" y="135" font-family="Arial, sans-serif" font-size="32" font-weight="bold" 
+        text-anchor="middle" fill="white" font-style="italic">
+    Support
+  </text>
+</svg>
