@@ -24,47 +24,28 @@ export function AuthGuard({
   const { isLoading, isAuthenticated } = useAuth();
   const router = useRouter();
   const pathname = usePathname();
-  const [hasRedirected, setHasRedirected] = useState(false);
-  const [isHydrated, setIsHydrated] = useState(false);
-  
-  // Track hydration to prevent SSR/CSR mismatch
   useEffect(() => {
-    setIsHydrated(true);
-  }, []);
-  
-  useEffect(() => {
-    if (!isHydrated || isLoading || hasRedirected) return; // Don't redirect while loading or already redirected
-    
+    if (isLoading) return; // Don't redirect while loading
+
     if (requireAuth && !isAuthenticated) {
       // User needs to be authenticated but isn't
       const defaultRedirect = `/auth/login?redirect=${encodeURIComponent(pathname)}`;
-      setHasRedirected(true);
       router.push(redirectTo || defaultRedirect);
       return;
     }
-    
+
     if (!requireAuth && isAuthenticated) {
       // User shouldn't be on this page if authenticated (e.g., login page)
-      setHasRedirected(true);
       router.push(redirectTo || '/');
       return;
     }
-  }, [isHydrated, isLoading, isAuthenticated, requireAuth, router, pathname, redirectTo, hasRedirected]);
-  
-  // Show loading state while checking auth, during hydration, or while redirecting
-  if (!isHydrated || isLoading || hasRedirected) {
+  }, [isLoading, isAuthenticated, requireAuth, router, pathname, redirectTo]);
+
+  // Show loading state only while checking auth
+  if (isLoading) {
     return fallback || <AuthLoadingFallback />;
   }
-  
-  // Show loading while redirecting
-  if (requireAuth && !isAuthenticated) {
-    return fallback || <AuthLoadingFallback message="กำลังเปลี่ยนเส้นทางไปหน้าเข้าสู่ระบบ..." />;
-  }
-  
-  if (!requireAuth && isAuthenticated) {
-    return fallback || <AuthLoadingFallback message="กำลังเปลี่ยนเส้นทาง..." />;
-  }
-  
+
   // User is in correct auth state, render children
   return <>{children}</>;
 }

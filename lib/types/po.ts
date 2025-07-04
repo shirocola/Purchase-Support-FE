@@ -197,6 +197,7 @@ export interface POListResponse {
 
 // PO Material types for confidential material management
 export interface Material {
+  displayInPO: any;
   id: string;
   materialCode: string;
   materialName: string;

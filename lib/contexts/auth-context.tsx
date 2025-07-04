@@ -243,12 +243,16 @@ export function AuthProvider({
       if (user) {
         // On login, redirect to user's default route
         const defaultRoute = getDefaultRouteForRole(user.role);
-        console.log('Navigating to default route:', defaultRoute);
-        router.push(defaultRoute);
+        if (typeof window !== 'undefined' && window.location.pathname !== defaultRoute) {
+          console.log('Navigating to default route:', defaultRoute);
+          router.push(defaultRoute);
+        }
       } else {
         // On logout, redirect to login page (or any public route)
-        console.log('User logged out, redirecting to login');
-        router.push('/login');
+        if (typeof window !== 'undefined' && window.location.pathname !== '/auth/login') {
+          console.log('User logged out, redirecting to /auth/login');
+          router.push('/auth/login');
+        }
       }
     }
   }, [isHydrated, isLoading, user, router]);
@@ -263,5 +267,6 @@ export function AuthProvider({
     refreshUser,
   };
 
+  // Render children immediately (no hydration/loading guard)
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 }

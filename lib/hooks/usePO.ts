@@ -115,13 +115,7 @@ const getMockPOList = async (params: POListParams = {}): Promise<POListResponse>
 export function usePOList(params: POListParams = {}) {
   return useQuery({
     queryKey: ['po-list', params],
-    queryFn: () => {
-      // Use mock data in development mode or when API is not available
-      if (process.env.NODE_ENV === 'development' || !process.env.NEXT_PUBLIC_API_BASE_URL) {
-        return getMockPOList(params);
-      }
-      return POService.getPOList(params);
-    },
+    queryFn: () => POService.getPOList(params),
     staleTime: 2 * 60 * 1000, // 2 minutes
     placeholderData: (previousData) => previousData, // Keep previous data while loading
   });

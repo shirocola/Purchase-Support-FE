@@ -35,6 +35,8 @@ import {
   Visibility as VisibilityIcon,
   Save as SaveIcon,
   Cancel as CancelIcon,
+  Delete as DeleteIcon,
+  Add as AddIcon,
 } from '@mui/icons-material';
 import { MaterialFilter } from './MaterialFilter';
 import { useMaterialList, useUpdateMaterial } from '@/lib/hooks/useMaterial';
@@ -177,25 +179,12 @@ export function MaterialManagement() {
     setSnackbar(prev => ({ ...prev, open: false }));
   }, []);
 
-  // Memoized table columns based on permissions
-  const columns = useMemo(() => {
-    const baseColumns = [
-      { id: 'materialCode', label: 'รหัสวัสดุ', sortable: true },
-      { id: 'materialName', label: 'ชื่อวัสดุ', sortable: true },
-      { id: 'category', label: 'หมวดหมู่', sortable: true },
-    ];
-
-    if (!isVendor) {
-      baseColumns.push(
-        { id: 'isConfidential', label: 'สถานะความลับ', sortable: false },
-        { id: 'aliasName', label: 'ชื่อเทียบเท่า', sortable: true }
-      );
-    }
-
-    baseColumns.push({ id: 'actions', label: 'การจัดการ', sortable: false });
-
-    return baseColumns;
-  }, [isVendor]);
+  // Only 2 columns: material, display in PO, then actions
+  const columns = useMemo(() => [
+    { id: 'material', label: 'วัสดุ', sortable: false },
+    { id: 'displayInPO', label: 'แสดงใน PO', sortable: false },
+    { id: 'actions', label: '', sortable: false },
+  ], []);
 
   if (isLoading) {
     return <LoadingState message="กำลังโหลดข้อมูลวัสดุ..." />;
@@ -249,99 +238,104 @@ export function MaterialManagement() {
         />
       ) : (
         <TableContainer component={Paper}>
-          <Table sx={{ minWidth: 650 }}>
+          <Table sx={{ minWidth: 400 }}>
             <TableHead>
               <TableRow>
                 {columns.map((column) => (
-                  <TableCell key={column.id}>
-                    {column.sortable ? (
-                      <TableSortLabel
-                        active={sort.sortBy === column.id}
-                        direction={sort.sortBy === column.id ? sort.sortOrder : 'asc'}
-                        onClick={() => handleSort(column.id as MaterialSortOptions['sortBy'])}
-                      >
-                        {column.label}
-                      </TableSortLabel>
-                    ) : (
-                      column.label
-                    )}
-                  </TableCell>
+                  <TableCell key={column.id}>{column.label}</TableCell>
                 ))}
               </TableRow>
             </TableHead>
             <TableBody>
               {materials.map((material) => (
                 <TableRow key={material.id} hover>
-                  {/* Material Code */}
+                  {/* Material column: editable textbox, always real name */}
                   <TableCell>
-                    <Typography variant="body2" sx={{ fontFamily: 'monospace' }}>
-                      {material.materialCode}
-                    </Typography>
-                  </TableCell>
-
-                  {/* Material Name */}
-                  <TableCell>
-                    <Typography variant="body2">
-                      {user ? maskMaterialValue(material.materialName, user.role, material.isConfidential) : material.materialName}
-                    </Typography>
-                    {material.description && (
-                      <Typography variant="caption" color="text.secondary" display="block">
-                        {user ? maskMaterialValue(material.description, user.role, material.isConfidential) : material.description}
-                      </Typography>
-                    )}
-                  </TableCell>
-
-                  {/* Category */}
-                  <TableCell>
-                    <Chip
-                      label={material.category}
-                      size="small"
+                    <TextField
+                      fullWidth
+                      value={material.materialName}
                       variant="outlined"
+                      size="small"
+                      InputProps={{
+                        readOnly: true,
+                        sx: { backgroundColor: '#f5f5f5' },
+                      }}
                     />
                   </TableCell>
-
-                  {/* Confidential Status (hidden from vendors) */}
-                  {!isVendor && (
-                    <TableCell>
-                      <Chip
-                        icon={material.isConfidential ? <SecurityIcon /> : <VisibilityIcon />}
-                        label={material.isConfidential ? 'ความลับ' : 'ทั่วไป'}
-                        color={material.isConfidential ? 'error' : 'default'}
-                        size="small"
-                      />
-                    </TableCell>
-                  )}
-
-                  {/* Alias Name (hidden from vendors) */}
-                  {!isVendor && (
-                    <TableCell>
-                      {material.aliasName ? (
-                        <Chip
-                          icon={<LabelIcon />}
-                          label={material.aliasName}
-                          color="info"
-                          size="small"
-                        />
-                      ) : (
-                        <Typography variant="body2" color="text.secondary">
-                          -
-                        </Typography>
-                      )}
-                    </TableCell>
-                  )}
-
-                  {/* Actions */}
+                  {/* Display in PO column: editable textbox, show aliasName, grey/disabled if has value */}
                   <TableCell>
-                    <Stack direction="row" spacing={1}>
-                      {canEdit && material.isConfidential && (
-                        <Tooltip title="แก้ไขชื่อเทียบเท่า">
-                          <IconButton
-                            size="small"
-                            onClick={() => handleEditClick(material)}
-                            color="primary"
-                          >
-                            <EditIcon />
-                          </IconButton>
+                    <TextField
+                      fullWidth
+                      value={material.aliasName || ''}
+                      variant="outlined"
+                      size="small"
+                      placeholder="ชื่อที่จะแสดงใน PO"
+                      InputProps={{
+                        readOnly: Boolean(material.aliasName),
+                        sx: material.aliasName ? { backgroundColor: '#f5f5f5' } : {},
+                      }}
+                      disabled={Boolean(material.aliasName)}
+                    />
+                  </TableCell>
+                  {/* Actions: add if no aliasName, else edit and delete */}
+                  <TableCell align="center">
+                    <Stack direction="row" spacing={1} justifyContent="center">
+                      {material.aliasName ? (
+                        <>
+                          <Tooltip title="แก้ไข">
+                            <span>
+                              <IconButton
+                                size="small"
+                                onClick={() => handleEditClick(material)}
+                                sx={{
+                                  backgroundColor: 'primary.main',
+                                  color: 'white',
+                                  '&:hover': { backgroundColor: 'primary.dark' },
+                                  borderRadius: '50%',
+                                  p: 1,
+                                }}
+                              >
+                                <EditIcon />
+                              </IconButton>
+                            </span>
+                          </Tooltip>
+                          <Tooltip title="ลบวัสดุ">
+                            <span>
+                              <IconButton
+                                size="small"
+                                sx={{
+                                  backgroundColor: 'error.main',
+                                  color: 'white',
+                                  borderRadius: '50%',
+                                  p: 1,
+                                  boxShadow: 1,
+                                  '&:hover': { backgroundColor: 'error.dark' },
+                                }}
+                                onClick={() => {/* TODO: implement delete logic */}}
+                              >
+                                <DeleteIcon />
+                              </IconButton>
+                            </span>
+                          </Tooltip>
+                        </>
+                      ) : (
+                        <Tooltip title="เพิ่มชื่อแสดงใน PO">
+                          <span>
+                            <IconButton
+                              size="small"
+                              sx={{
+                              backgroundColor: '#000',
+                              color: 'white',
+                              borderRadius: '50%',
+                              p: 1,
+                              boxShadow: 1,
+                              '&:hover': { backgroundColor: '#222' },
+                              }}
+                              onClick={() => handleEditClick(material)}
+                            >
+                              <AddIcon />
+                            </IconButton>
+                          </span>
                         </Tooltip>
                       )}
                     </Stack>
@@ -350,8 +344,6 @@ export function MaterialManagement() {
               ))}
             </TableBody>
           </Table>
-
-          {/* Pagination */}
           <TablePagination
             component="div"
             count={totalCount}

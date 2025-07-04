@@ -1,3 +1,5 @@
+
+'use client';
 import { 
   Material, 
   MaterialListParams, 
@@ -20,6 +22,7 @@ const mockMaterials: Material[] = [
     updatedAt: '2024-01-20T10:30:00Z',
     createdBy: 'system',
     updatedBy: 'user-mc-001',
+    displayInPO: undefined
   },
   {
     id: 'mat-002',
@@ -32,6 +35,7 @@ const mockMaterials: Material[] = [
     updatedAt: '2024-01-10T09:15:00Z',
     createdBy: 'system',
     updatedBy: 'system',
+    displayInPO: undefined
   },
   {
     id: 'mat-003',
@@ -45,6 +49,7 @@ const mockMaterials: Material[] = [
     updatedAt: '2024-01-18T16:45:00Z',
     createdBy: 'system',
     updatedBy: 'user-mc-001',
+    displayInPO: undefined
   },
   {
     id: 'mat-004',
@@ -57,6 +62,7 @@ const mockMaterials: Material[] = [
     updatedAt: '2024-01-08T11:30:00Z',
     createdBy: 'system',
     updatedBy: 'system',
+    displayInPO: undefined
   },
   {
     id: 'mat-005',
@@ -70,6 +76,7 @@ const mockMaterials: Material[] = [
     updatedAt: '2024-01-22T08:15:00Z',
     createdBy: 'system',
     updatedBy: 'user-mc-002',
+    displayInPO: undefined
   },
   {
     id: 'mat-006',
@@ -82,6 +89,7 @@ const mockMaterials: Material[] = [
     updatedAt: '2024-01-03T10:00:00Z',
     createdBy: 'system',
     updatedBy: 'system',
+    displayInPO: undefined
   },
 ];
 
@@ -90,70 +98,56 @@ const delay = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
 
 export class MaterialService {
   static async getMaterials(params: MaterialListParams = {}): Promise<MaterialListResponse> {
-    await delay(500); // Simulate API delay
-
-    const {
-      page = 1,
-      limit = 10,
-      filter = {},
-      sort = { sortBy: 'materialCode', sortOrder: 'asc' }
-    } = params;
-
-    // Apply filters
-    let filteredMaterials = [...mockMaterials];
-
-    if (filter.search) {
-      const searchLower = filter.search.toLowerCase();
-      filteredMaterials = filteredMaterials.filter(material =>
-        material.materialCode.toLowerCase().includes(searchLower) ||
-        material.materialName.toLowerCase().includes(searchLower) ||
-        material.category.toLowerCase().includes(searchLower) ||
-        (material.aliasName && material.aliasName.toLowerCase().includes(searchLower))
-      );
-    }
-
-    if (filter.category) {
-      filteredMaterials = filteredMaterials.filter(material =>
-        material.category === filter.category
-      );
-    }
-
-    if (filter.isConfidential !== undefined) {
-      filteredMaterials = filteredMaterials.filter(material =>
-        material.isConfidential === filter.isConfidential
-      );
-    }
-
-    if (filter.hasAlias !== undefined) {
-      filteredMaterials = filteredMaterials.filter(material =>
-        filter.hasAlias ? !!material.aliasName : !material.aliasName
-      );
-    }
-
-    // Apply sorting
-    filteredMaterials.sort((a, b) => {
-      const aValue = a[sort.sortBy] || '';
-      const bValue = b[sort.sortBy] || '';
-      
-      if (sort.sortOrder === 'asc') {
-        return aValue > bValue ? 1 : -1;
-      } else {
-        return aValue < bValue ? 1 : -1;
-      }
-    });
-
-    // Apply pagination
-    const startIndex = (page - 1) * limit;
-    const endIndex = startIndex + limit;
-    const paginatedMaterials = filteredMaterials.slice(startIndex, endIndex);
-
-    return {
-      items: paginatedMaterials,
-      total: filteredMaterials.length,
-      page,
-      limit,
-      totalPages: Math.ceil(filteredMaterials.length / limit),
+    // Prepare payload for the real API
+    // Use the required API payload structure
+    const payload: any = {
+      RN_MAT: [],
+      RN_PLANT: [],
+      RN_DATE: [],
     };
+
+    // HARDCODED TOKEN FOR TESTING ONLY (if needed)
+    const token = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VybmFtZSI6Ik9zb3RzcGEiLCJpYXQiOjE3NTE2MjM3ODEsImV4cCI6MTc1MTYyNTU4MX0.m-s6O6eY21xxwCoh0gAUZJjLKEB11rnqagEVy7Dnk2Q";
+
+    try {
+      const response = await fetch(
+        'https://apiservice-ssb-api-uat.osotspa.com/api/master/get_material_master',
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            ...(token ? { Authorization: `Bearer ${token}` } : {}),
+          },
+          body: JSON.stringify(payload),
+        }
+      );
+      const data = await response.json();
+      // Log for debugging
+      console.log('Material API response:', data);
+
+      // Defensive: try to find the array of items in the response
+      let items: any[] = [];
+      if (Array.isArray(data.items)) {
+        items = data.items;
+      } else if (Array.isArray(data.data)) {
+        items = data.data;
+      } else if (Array.isArray(data.result)) {
+        items = data.result;
+      } else if (Array.isArray(data.materials)) {
+        items = data.materials;
+      }
+
+      return {
+        items,
+        total: data.total || items.length || 0,
+        page: data.page || payload.page,
+        limit: data.limit || payload.limit,
+        totalPages: data.totalPages || Math.ceil((data.total || items.length || 0) / (data.limit || payload.limit)),
+      };
+    } catch (error: any) {
+      console.error('Material API error:', error);
+      throw error;
+    }
   }
 
   static async getMaterial(id: string): Promise<Material | null> {

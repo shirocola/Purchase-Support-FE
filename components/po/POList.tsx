@@ -31,6 +31,7 @@ import {
   Sort as SortIcon,
   Add as AddIcon,
   CheckCircle as CheckIcon,
+  PictureAsPdf as PdfIcon,
 } from '@mui/icons-material';
 
 import { PurchaseOrder, POStatus, UserRole, POListParams, POListSortOptions } from '@/lib/types/po';
@@ -172,7 +173,9 @@ export function POList({ className }: POListProps) {
     }).format(amount);
   }, []);
 
+  // Avoid hydration mismatch: only format date on client
   const formatDate = useCallback((dateString: string) => {
+    if (typeof window === 'undefined') return dateString;
     return new Date(dateString).toLocaleDateString('th-TH', {
       day: '2-digit',
       month: '2-digit',
@@ -181,6 +184,7 @@ export function POList({ className }: POListProps) {
   }, []);
 
   const formatDateTime = useCallback((dateString: string) => {
+    if (typeof window === 'undefined') return dateString;
     return new Date(dateString).toLocaleDateString('th-TH', {
       day: '2-digit',
       month: '2-digit',
@@ -272,6 +276,9 @@ export function POList({ className }: POListProps) {
           <Table>
             <TableHead>
               <TableRow>
+                {/* Removed left action column header */}
+                <TableCell align="center" sx={{ width: 48 }}></TableCell>
+                <TableCell align="center" sx={{ width: 48 }}></TableCell>
                 <TableCell>
                   <Box sx={{ display: 'flex', alignItems: 'center', cursor: 'pointer' }}
                        onClick={() => handleSort('poNumber')}>
@@ -286,13 +293,13 @@ export function POList({ className }: POListProps) {
                     <SortIcon fontSize="small" sx={{ ml: 0.5 }} />
                   </Box>
                 </TableCell>
-                <TableCell>
+                {/* <TableCell>
                   <Box sx={{ display: 'flex', alignItems: 'center', cursor: 'pointer' }}
                        onClick={() => handleSort('status')}>
                     สถานะ
                     <SortIcon fontSize="small" sx={{ ml: 0.5 }} />
                   </Box>
-                </TableCell>
+                </TableCell> */}
                 <TableCell>
                   <Box sx={{ display: 'flex', alignItems: 'center', cursor: 'pointer' }}
                        onClick={() => handleSort('vendor')}>
@@ -317,7 +324,7 @@ export function POList({ className }: POListProps) {
                   </Box>
                 </TableCell>
                 <TableCell align="center">Sent?</TableCell>
-                <TableCell align="center">การดำเนินการ</TableCell>
+                <TableCell align="center">Acknowledge</TableCell>
               </TableRow>
             </TableHead>
             <TableBody>
@@ -328,6 +335,16 @@ export function POList({ className }: POListProps) {
                   sx={{ cursor: 'pointer' }}
                   onClick={() => handleView(po)}
                 >
+                  <TableCell align="center">
+                    <IconButton size="small" onClick={e => { e.stopPropagation(); /* TODO: handle PDF view */ }} aria-label="ดู PDF">
+                      <PdfIcon fontSize="small" sx={{ color: 'error.main' }} />
+                    </IconButton>
+                  </TableCell>
+                  <TableCell align="center">
+                    <IconButton size="small" onClick={e => { e.stopPropagation(); /* TODO: handle send email */ }} aria-label="ส่งอีเมล">
+                      <EmailIcon fontSize="small" sx={{ color: 'primary.main' }} />
+                    </IconButton>
+                  </TableCell>
                   <TableCell>
                     <Typography variant="body2" fontWeight="medium">
                       {po.poNumber}
@@ -338,13 +355,13 @@ export function POList({ className }: POListProps) {
                       {po.title}
                     </Typography>
                   </TableCell>
-                  <TableCell>
+                  {/* <TableCell>
                     <Chip
                       label={statusConfig[po.status]?.label || po.status}
                       color={statusConfig[po.status]?.color || 'default'}
                       size="small"
                     />
-                  </TableCell>
+                  </TableCell> */}
                   <TableCell>
                     <Box sx={{ display: 'flex', alignItems: 'center' }}>
                       <Avatar sx={{ width: 24, height: 24, mr: 1, fontSize: '0.75rem' }}>
@@ -382,63 +399,34 @@ export function POList({ className }: POListProps) {
                     )}
                   </TableCell>
                   <TableCell align="center">
-                    <Stack direction="row" spacing={0.5} justifyContent="center">
-                      <Tooltip title="ดูรายละเอียด">
-                        <IconButton
-                          size="small"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            handleView(po);
-                          }}
-                        >
-                          <ViewIcon fontSize="small" />
-                        </IconButton>
-                      </Tooltip>
-                      
-                      {permissions?.canSave && (
-                        <Tooltip title="แก้ไข">
-                          <IconButton
-                            size="small"
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              handleEdit(po);
-                            }}
-                          >
-                            <EditIcon fontSize="small" />
-                          </IconButton>
-                        </Tooltip>
-                      )}
-                      
-                      {permissions?.canSendEmail && [POStatus.APPROVED, POStatus.SENT].includes(po.status) && (
-                        <Tooltip title="ส่งอีเมล">
-                          <IconButton
-                            size="small"
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              handleSendEmail(po);
-                            }}
-                            sx={{ color: 'primary.main' }}
-                          >
-                            <EmailIcon fontSize="small" />
-                          </IconButton>
-                        </Tooltip>
-                      )}
-                      
-                      {permissions?.canViewAcknowledgeStatus && (
-                        <Tooltip title="ติดตาม Vendor Acknowledge">
-                          <IconButton
-                            size="small"
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              handleTrackAcknowledge(po);
-                            }}
-                          >
-                            <TrackIcon fontSize="small" />
-                          </IconButton>
-                        </Tooltip>
-                      )}
-                    </Stack>
+                    {po.status === 'ACKNOWLEDGED' && po.acknowledgedAt ? (
+                      <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+                        <CheckIcon color="success" fontSize="small" />
+                        <Typography variant="caption" color="text.secondary">
+                          {formatDateTime(po.acknowledgedAt)}
+                        </Typography>
+                      </Box>
+                    ) : po.status === 'REJECTED' && po.acknowledgedAt ? (
+                      <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+                        <TrackIcon color="error" fontSize="small" />
+                        <Typography variant="caption" color="text.secondary">
+                          {formatDateTime(po.acknowledgedAt)}
+                        </Typography>
+                      </Box>
+                    ) : po.status === 'SENT' ? (
+                      <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+                        <TrackIcon color="warning" fontSize="small" />
+                        <Typography variant="caption" color="text.secondary">
+                          รอรับทราบ
+                        </Typography>
+                      </Box>
+                    ) : (
+                      <Typography variant="body2" color="text.secondary">
+                        -
+                      </Typography>
+                    )}
                   </TableCell>
+                  {/* Removed view, edit, and vendor acknowledge actions */}
                 </TableRow>
               ))}
             </TableBody>

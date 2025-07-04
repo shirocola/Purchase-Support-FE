@@ -49,35 +49,55 @@ export class POService {
    * Get PO list with filtering, sorting, and pagination
    */
   static async getPOList(params: POListParams = {}): Promise<POListResponse> {
-    const queryParams = new URLSearchParams();
-    
-    // Add pagination
-    if (params.page) queryParams.append('page', params.page.toString());
-    if (params.limit) queryParams.append('limit', params.limit.toString());
-    
-    // Add filters
-    if (params.filter) {
-      if (params.filter.search) queryParams.append('search', params.filter.search);
-      if (params.filter.status?.length) {
-        params.filter.status.forEach(status => queryParams.append('status', status));
+    // Map your params to the external API's expected format if needed
+    // Send only page and limit for backend compatibility test
+    const payload: any = {
+      page: params.page || 1,
+      limit: params.limit || 10,
+    };
+
+    // The external API expects POST with filters in body
+    // HARDCODED TOKEN FOR TESTING ONLY
+    const token = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VybmFtZSI6Ik9zb3RzcGEiLCJpYXQiOjE3NTE2MjA1MDAsImV4cCI6MTc1MTYyMjMwMH0.Uhctxwi__mKCyj0YS6olS6U_4OVgOZ8hBIBSSZcQI3E";
+
+    try {
+      const response = await axios.post(
+        'https://apiservice-ssb-api-uat.osotspa.com/api/warehouse/get_purchase_order',
+        payload,
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+
+      // Log the response for debugging
+      console.log('PO API response:', response.data);
+
+      const data = response.data;
+      // Defensive: try to find the array of items in the response
+      let items: any[] = [];
+      if (Array.isArray(data.items)) {
+        items = data.items;
+      } else if (Array.isArray(data.data)) {
+        items = data.data;
+      } else if (Array.isArray(data.result)) {
+        items = data.result;
+      } else if (Array.isArray(data.purchaseOrders)) {
+        items = data.purchaseOrders;
       }
-      if (params.filter.vendorId) queryParams.append('vendorId', params.filter.vendorId);
-      if (params.filter.dateFrom) queryParams.append('dateFrom', params.filter.dateFrom);
-      if (params.filter.dateTo) queryParams.append('dateTo', params.filter.dateTo);
-      if (params.filter.createdBy) queryParams.append('createdBy', params.filter.createdBy);
+
+      return {
+        items,
+        total: data.total || items.length || 0,
+        page: data.page || payload.page,
+        limit: data.limit || payload.limit,
+        totalPages: data.totalPages || Math.ceil((data.total || items.length || 0) / (data.limit || payload.limit)),
+      };
+    } catch (error: any) {
+      if (error.response) {
+        console.error('PO API error:', error.response.status, error.response.data);
+      } else {
+        console.error('PO API error:', error);
+      }
+      throw error;
     }
-    
-    // Add sorting
-    if (params.sort) {
-      queryParams.append('sortBy', params.sort.sortBy);
-      queryParams.append('sortOrder', params.sort.sortOrder);
-    }
-    
-    const response: AxiosResponse<APIResponse<POListResponse>> = await api.get(`/po?${queryParams.toString()}`);
-    if (!response.data.success) {
-      throw new Error(response.data.message || 'Failed to fetch PO list');
-    }
-    return response.data.data!;
   }
 
   /**
