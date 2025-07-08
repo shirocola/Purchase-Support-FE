@@ -88,7 +88,7 @@ export function POList({ className }: POListProps) {
 
   // Get user permissions
   const permissions = useMemo(() => {
-    return user ? getRolePermissions(user.role) : null;
+    return user?.role ? getRolePermissions(user.role as UserRole) : null;
   }, [user]);
 
   // Build query parameters
