@@ -344,7 +344,16 @@ Ready to redirect to main app!`
           });
 
           setCurrentUser(user);
-          localStorage.setItem('azure', 'false');
+          
+          // ✅ แก้ไข: ใช้ TokenManager หรือ saveAuth แทน localStorage โดยตรง
+          const authDataWithMeta = {
+            ...auth,
+            user: user,
+            azure: false,
+            loginMethod: 'azure',
+            loginTimestamp: new Date().toISOString()
+          };
+          saveAuth(authDataWithMeta);
 
           console.log('Authentication complete, redirecting...');
           window.location.href = '/';
@@ -455,12 +464,19 @@ Please check backend configuration.`);
           accessToken: 'mock-admin-token',
           accessgroup: 1,
           fullname: 'Administrator',
-          position: 'System Administrator'
+          position: 'System Administrator',
+          role: 'Admin' // ✅ เพิ่ม role
         };
 
-        saveAuth(mockAuth);
+        // ✅ แก้ไข: ใช้ saveAuth แทน localStorage โดยตรง
+        const authDataWithMeta = {
+          ...mockAuth,
+          azure: false,
+          loginMethod: 'manual',
+          loginTimestamp: new Date().toISOString()
+        };
+        saveAuth(authDataWithMeta);
         setCurrentUser(mockAuth);
-        localStorage.setItem('azure', 'false');
 
         await transactionlog({
           log: 'login',
@@ -486,7 +502,16 @@ Please check backend configuration.`);
         });
 
         setCurrentUser(user);
-        localStorage.setItem('azure', 'false');
+        
+        // ✅ แก้ไข: ใช้ saveAuth แทน localStorage โดยตรง
+        const authDataWithMeta = {
+          ...auth,
+          user: user,
+          azure: false,
+          loginMethod: 'manual',
+          loginTimestamp: new Date().toISOString()
+        };
+        saveAuth(authDataWithMeta);
 
         window.location.href = '/';
       }

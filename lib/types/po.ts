@@ -75,11 +75,24 @@ export enum UserRole {
 }
 
 export interface User {
-  id: string;
+  id: number;
   username: string;
   email: string;
-  role: UserRole;
-  permissions: Permission[];
+  fullname: string;
+  position?: string;
+  roles: string[];
+  accessToken: string;
+  accessgroup: number;
+  role?: string;
+  // เพิ่ม optional fields จากการ login
+  displayName?: string;
+  employee_id?: string;
+  telephone?: string;
+  department?: string;
+  supervisor_id?: string;
+  supervisor_name?: string;
+  supervisor_mail?: string;
+  supervisor_username?: string;
 }
 
 export interface Permission {

@@ -37,9 +37,10 @@ const authApi = axios.create({
 
 // Token management utilities
 class TokenManager {
-  private static TOKEN_KEY = 'authToken';
-  private static REFRESH_TOKEN_KEY = 'refreshToken';
-  private static USER_KEY = 'userData';
+  private static AUTH_KEY = 'pro-auth';              // ✅ เปลี่ยนเป็น 'pro-auth'
+  private static TOKEN_KEY = 'pro-auth-token';       // ✅ เปลี่ยนเป็น 'pro-auth-token'
+  private static REFRESH_TOKEN_KEY = 'pro-auth-refresh'; // ✅ เปลี่ยนเป็น 'pro-auth-refresh'
+  private static USER_KEY = 'pro-auth-user';         // ✅ เปลี่ยนเป็น 'pro-auth-user'
   
   // For development/fallback - in production should use httpOnly cookies
   static getToken(): string | null {
@@ -54,10 +55,15 @@ class TokenManager {
   
   static removeToken(): void {
     if (typeof window === 'undefined') return;
+    localStorage.removeItem(this.AUTH_KEY);
     localStorage.removeItem(this.TOKEN_KEY);
     localStorage.removeItem(this.REFRESH_TOKEN_KEY);
     localStorage.removeItem(this.USER_KEY);
+    // ลบ legacy keys
     localStorage.removeItem('auth');
+    localStorage.removeItem('authToken');
+    localStorage.removeItem('refreshToken');
+    localStorage.removeItem('userData');
     localStorage.removeItem('azure');
   }
   
@@ -74,12 +80,91 @@ class TokenManager {
   static getUserData(): User | null {
     if (typeof window === 'undefined') return null;
     const userData = localStorage.getItem(this.USER_KEY);
-    return userData ? JSON.parse(userData) : null;
+    
+    if (!userData) {
+      // ลองดูจาก AUTH_KEY
+      const authData = this.getAuthData();
+      return authData?.user || null;
+    }
+    
+    try {
+      const parsedData = JSON.parse(userData);
+      
+      // ✅ ตรวจสอบและแปลง data format
+      if (parsedData) {
+        return {
+          id: parsedData.id || 0,
+          username: parsedData.username || '',
+          email: parsedData.email || '',
+          fullname: parsedData.fullname || parsedData.displayName || '',
+          position: parsedData.position || '',
+          roles: parsedData.roles || [],
+          accessToken: parsedData.accessToken || '',
+          accessgroup: parsedData.accessgroup || 1,
+          role: parsedData.role || 'AppUser',
+          // Optional fields
+          displayName: parsedData.displayName,
+          employee_id: parsedData.employee_id,
+          telephone: parsedData.telephone,
+          department: parsedData.department,
+          supervisor_id: parsedData.supervisor_id,
+          supervisor_name: parsedData.supervisor_name,
+          supervisor_mail: parsedData.supervisor_mail,
+          supervisor_username: parsedData.supervisor_username
+        };
+      }
+    } catch (error) {
+      console.error('Error parsing user data:', error);
+    }
+    
+    return null;
   }
-  
+
   static setUserData(user: User): void {
     if (typeof window === 'undefined') return;
     localStorage.setItem(this.USER_KEY, JSON.stringify(user));
+  }
+
+  // ✅ เพิ่มฟังก์ชันสำหรับจัดการ auth data แบบรวม
+  static getAuthData(): any | null {
+    if (typeof window === 'undefined') return null;
+    const authData = localStorage.getItem(this.AUTH_KEY);
+    return authData ? JSON.parse(authData) : null;
+  }
+
+  static setAuthData(authData: any): void {
+    if (typeof window === 'undefined') return;
+    localStorage.setItem(this.AUTH_KEY, JSON.stringify(authData));
+    
+    // เก็บ user data แยกด้วยสำหรับ backward compatibility
+    if (authData.user) {
+      this.setUserData(authData.user);
+    }
+    if (authData.accessToken) {
+      this.setToken(authData.accessToken);
+    }
+  }
+
+  // ✅ เพิ่มฟังก์ชันสำหรับจัดการ role
+  static getCurrentUserRole(): string | null {
+    const userData = this.getUserData();
+    const authData = this.getAuthData();
+    
+    // ลองหา role จากหลายที่
+    return userData?.role || 
+           authData?.user?.role || 
+           authData?.role || 
+           'AppUser'; // default role
+  }
+
+  static hasRole(role: string): boolean {
+    const currentRole = this.getCurrentUserRole();
+    return currentRole === role;
+  }
+
+  static hasAnyRole(roles: string[]): boolean {
+    const currentRole = this.getCurrentUserRole();
+    return currentRole ? roles.includes(currentRole) : false;
   }
 }
 
@@ -219,6 +304,27 @@ export class AuthService {
   static getCurrentUser(): User | null {
     return TokenManager.getUserData();
   }
+
+  /**
+   * Get current user role
+   */
+  static getCurrentUserRole(): string | null {
+    return TokenManager.getCurrentUserRole();
+  }
+
+  /**
+   * Check if user has specific role
+   */
+  static hasRole(role: string): boolean {
+    return TokenManager.hasRole(role);
+  }
+
+  /**
+   * Check if user has any of the specified roles
+   */
+  static hasAnyRole(roles: string[]): boolean {
+    return TokenManager.hasAnyRole(roles);
+  }
   
   /**
    * Check token expiry and refresh if needed
@@ -327,6 +433,26 @@ export async function login(username: string, password: string) {
   } catch (error) {
     console.error('Login API error:', error);
     throw error;
+  }
+}
+
+// ✅ เพิ่มฟังก์ชันสำหรับ save auth data (ใช้ใน login flow)
+export function saveAuth(authData: any): void {
+  if (authData) {
+    TokenManager.setAuthData(authData);
+    
+    // ✅ เก็บข้อมูลเพิ่มเติมถ้ามี
+    if (authData.azure !== undefined) {
+      localStorage.setItem('azure', authData.azure.toString());
+    }
+    if (authData.loginMethod) {
+      localStorage.setItem('loginMethod', authData.loginMethod);
+    }
+    if (authData.loginTimestamp) {
+      localStorage.setItem('loginTimestamp', authData.loginTimestamp);
+    }
+  } else {
+    TokenManager.removeToken();
   }
 }
 
