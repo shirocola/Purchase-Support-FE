@@ -24,9 +24,13 @@ export interface RefreshTokenResponse {
   expiresIn: number;
 }
 
+// Environment variables
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:3001/api';
+const SC_API_URL = process.env.NEXT_PUBLIC_SC_API_URL || 'https://api-dev.osotspa.com/securitycontrol/api';
+
 // Configure axios instance for auth
 const authApi = axios.create({
-  baseURL: process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:3001/api',
+  baseURL: API_BASE_URL,
   timeout: 10000,
   withCredentials: true, // Important for httpOnly cookies
 });
@@ -53,6 +57,8 @@ class TokenManager {
     localStorage.removeItem(this.TOKEN_KEY);
     localStorage.removeItem(this.REFRESH_TOKEN_KEY);
     localStorage.removeItem(this.USER_KEY);
+    localStorage.removeItem('auth');
+    localStorage.removeItem('azure');
   }
   
   static getRefreshToken(): string | null {
@@ -132,7 +138,7 @@ authApi.interceptors.response.use(
 
 export class AuthService {
   /**
-   * Login user with username and password
+   * Login user with username and password (Modern API)
    */
   static async login(credentials: LoginRequest): Promise<LoginResponse> {
     const response: AxiosResponse<APIResponse<LoginResponse>> = await authApi.post('/auth/login', credentials);
@@ -242,6 +248,85 @@ export class AuthService {
         return false;
       }
     }
+  }
+}
+
+// เพิ่มฟังก์ชันสำหรับขอ OAuth2 token
+async function getOAuth2Token() {
+  const scApiUrl = process.env.NEXT_PUBLIC_SC_API_URL;
+  const clientId = process.env.NEXT_PUBLIC_APP_CLIENT_ID;
+  const clientSecret = process.env.NEXT_PUBLIC_APP_CLIENT_SECRET;
+  const grantType = process.env.NEXT_PUBLIC_APP_GRANT_TYPE;
+
+  if (!scApiUrl || !clientId || !clientSecret || !grantType) {
+    throw new Error('Missing required OAuth2 configuration');
+  }
+
+  const tokenParams = new URLSearchParams();
+  tokenParams.append('client_id', clientId);
+  tokenParams.append('client_secret', clientSecret);
+  tokenParams.append('grant_type', grantType);
+  
+  const response = await fetch(`${scApiUrl}/oauth2/token`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/x-www-form-urlencoded',
+    },
+    body: tokenParams.toString()
+  });
+
+  if (!response.ok) {
+    throw new Error(`Failed to get OAuth2 token: ${response.status}`);
+  }
+
+  const tokenData = await response.json();
+  return tokenData.access_token;
+}
+
+// แก้ไขฟังก์ชัน getUserByToken
+export async function getUserByToken(accessToken: string) {
+  // ขอ OAuth2 token สำหรับ API authorization
+  const oauthToken = await getOAuth2Token();
+  
+  return await axios.post(`${SC_API_URL}/auth/verify_token`, {
+    accessToken
+  }, {
+    headers: {
+      'Authorization': `Bearer ${oauthToken}`,  // ใช้ OAuth2 token
+      'Content-Type': 'application/json'
+    }
+  });
+}
+
+// แก้ไขฟังก์ชัน getUserByModule
+export async function getUserByModule(userId: number, moduleId: string) {
+  // ขอ OAuth2 token สำหรับ API authorization
+  const oauthToken = await getOAuth2Token();
+  
+  return await axios.post(`${SC_API_URL}/roles_modulesearch`, {
+    userid: userId,
+    module_id: moduleId
+  }, {
+    headers: {
+      'Authorization': `Bearer ${oauthToken}`,  // ใช้ OAuth2 token
+      'Content-Type': 'application/json'
+    }
+  })
+  .then((response) => response.data)  // คืนค่า response.data แทน response object
+  .then((response) => response.data); // และ response.data อีกครั้ง (ตามโปรเจกต์อื่น)
+}
+
+// Legacy login function (ใช้ตามเดิม - ไม่ต้อง OAuth2 token)
+export async function login(username: string, password: string) {
+  try {
+    const response = await axios.post(`${SC_API_URL}/auth/signin`, {
+      username,
+      password
+    });
+    return response;
+  } catch (error) {
+    console.error('Login API error:', error);
+    throw error;
   }
 }
 

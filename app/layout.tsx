@@ -1,26 +1,32 @@
-import type { Metadata } from "next";
-import "./globals.css";
-import { Providers } from './providers';
-import { ConditionalLayout } from '@/components/layout/ConditionalLayout';
+'use client';
 
-export const metadata: Metadata = {
-  title: "Purchase Order Management System",
-  description: "ระบบจัดการใบสั่งซื้อ (Purchase Order)",
-};
+import { ThemeProvider } from '@mui/material/styles';
+import CssBaseline from '@mui/material/CssBaseline';
+import { PublicClientApplication } from '@azure/msal-browser';
+import { MsalProvider } from '@azure/msal-react';
+import { AuthProvider } from '../lib/contexts/auth-context';
+import { msalConfig } from '../lib/config/msalConfig';
+import theme from '../lib/theme/theme';
+
+// Create MSAL instance
+const msalInstance = new PublicClientApplication(msalConfig);
 
 export default function RootLayout({
   children,
-}: Readonly<{
+}: {
   children: React.ReactNode;
-}>) {
+}) {
   return (
     <html lang="th">
-      <body className="antialiased" suppressHydrationWarning>
-        <Providers>
-          <ConditionalLayout>
-            {children}
-          </ConditionalLayout>
-        </Providers>
+      <body>
+        <MsalProvider instance={msalInstance}>
+          <AuthProvider>
+            <ThemeProvider theme={theme}>
+              <CssBaseline />
+              {children}
+            </ThemeProvider>
+          </AuthProvider>
+        </MsalProvider>
       </body>
     </html>
   );
