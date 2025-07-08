@@ -247,22 +247,21 @@ export function MaterialManagement() {
             </TableHead>
             <TableBody>
               {materials.map((material) => (
-                <TableRow key={material.id} hover>
-                  {/* Material column: editable textbox, always real name */}
+                <TableRow key={`${material.product_code}-${material.plant}`} hover>
+                  {/* วัสดุ: แสดงรหัส + ชื่อ */}
                   <TableCell>
-                    <TextField
-                      fullWidth
-                      value={material.materialName}
-                      variant="outlined"
-                      size="small"
-                      InputProps={{
-                        readOnly: true,
-                        sx: { backgroundColor: '#f5f5f5' },
-                      }}
-                    />
+                    <Box>
+                      <Typography variant="subtitle2" sx={{ fontWeight: 600 }}>
+                        {material.product_code}
+                      </Typography>
+                      <Typography variant="body2" color="text.secondary">
+                        {material.product_des_th}
+                      </Typography>
+                    </Box>
                   </TableCell>
-                  {/* Display in PO column: editable textbox, show aliasName, grey/disabled if has value */}
+                  {/* Display in PO column: (ใส่ logic หรือเว้นว่างไว้) */}
                   <TableCell>
+                    {/* ตัวอย่าง: */}
                     <TextField
                       fullWidth
                       value={material.aliasName || ''}
@@ -276,7 +275,7 @@ export function MaterialManagement() {
                       disabled={Boolean(material.aliasName)}
                     />
                   </TableCell>
-                  {/* Actions: add if no aliasName, else edit and delete */}
+                  {/* Actions */}
                   <TableCell align="center">
                     <Stack direction="row" spacing={1} justifyContent="center">
                       {material.aliasName ? (

@@ -1,4 +1,3 @@
-
 'use client';
 import { 
   Material, 
@@ -22,7 +21,10 @@ const mockMaterials: Material[] = [
     updatedAt: '2024-01-20T10:30:00Z',
     createdBy: 'system',
     updatedBy: 'user-mc-001',
-    displayInPO: undefined
+    displayInPO: undefined,
+    product_code: undefined,
+    plant: undefined,
+    product_des_th: undefined
   },
   {
     id: 'mat-002',
@@ -35,7 +37,10 @@ const mockMaterials: Material[] = [
     updatedAt: '2024-01-10T09:15:00Z',
     createdBy: 'system',
     updatedBy: 'system',
-    displayInPO: undefined
+    displayInPO: undefined,
+    product_code: undefined,
+    plant: undefined,
+    product_des_th: undefined
   },
   {
     id: 'mat-003',
@@ -49,7 +54,10 @@ const mockMaterials: Material[] = [
     updatedAt: '2024-01-18T16:45:00Z',
     createdBy: 'system',
     updatedBy: 'user-mc-001',
-    displayInPO: undefined
+    displayInPO: undefined,
+    product_code: undefined,
+    plant: undefined,
+    product_des_th: undefined
   },
   {
     id: 'mat-004',
@@ -62,7 +70,10 @@ const mockMaterials: Material[] = [
     updatedAt: '2024-01-08T11:30:00Z',
     createdBy: 'system',
     updatedBy: 'system',
-    displayInPO: undefined
+    displayInPO: undefined,
+    product_code: undefined,
+    plant: undefined,
+    product_des_th: undefined
   },
   {
     id: 'mat-005',
@@ -76,7 +87,10 @@ const mockMaterials: Material[] = [
     updatedAt: '2024-01-22T08:15:00Z',
     createdBy: 'system',
     updatedBy: 'user-mc-002',
-    displayInPO: undefined
+    displayInPO: undefined,
+    product_code: undefined,
+    plant: undefined,
+    product_des_th: undefined
   },
   {
     id: 'mat-006',
@@ -89,7 +103,10 @@ const mockMaterials: Material[] = [
     updatedAt: '2024-01-03T10:00:00Z',
     createdBy: 'system',
     updatedBy: 'system',
-    displayInPO: undefined
+    displayInPO: undefined,
+    product_code: undefined,
+    plant: undefined,
+    product_des_th: undefined
   },
 ];
 
@@ -137,12 +154,28 @@ export class MaterialService {
         items = data.materials;
       }
 
+      // Remove duplicates by product_code + plant (strict string compare, trim, lowercase)
+      const uniqueMap = new Map<string, any>();
+      for (const item of items) {
+        if (!item.product_code || !item.plant) continue;
+        const code = String(item.product_code).trim().toLowerCase();
+        const plant = String(item.plant).trim().toLowerCase();
+        if (!code || !plant) continue;
+        const key = `${code}-${plant}`;
+        if (!uniqueMap.has(key)) {
+          uniqueMap.set(key, item);
+        } else {
+          console.warn('Duplicate material:', key, item);
+        }
+      }
+      const uniqueItems = Array.from(uniqueMap.values());
+
       return {
-        items,
-        total: data.total || items.length || 0,
+        items: uniqueItems,
+        total: data.total || uniqueItems.length || 0,
         page: data.page || payload.page,
         limit: data.limit || payload.limit,
-        totalPages: data.totalPages || Math.ceil((data.total || items.length || 0) / (data.limit || payload.limit)),
+        totalPages: data.totalPages || Math.ceil((data.total || uniqueItems.length || 0) / (data.limit || payload.limit)),
       };
     } catch (error: any) {
       console.error('Material API error:', error);

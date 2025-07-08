@@ -1,5 +1,7 @@
 // Purchase Order types and interfaces
 
+import { ReactNode } from "react";
+
 export interface POItem {
   id: string;
   productName: string;
@@ -209,6 +211,9 @@ export interface POListResponse {
 
 // PO Material types for confidential material management
 export interface Material {
+  product_code: any;
+  plant: any;
+  product_des_th: ReactNode;
   displayInPO: any;
   id: string;
   materialCode: string;

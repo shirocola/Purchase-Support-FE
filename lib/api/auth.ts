@@ -37,6 +37,12 @@ const authApi = axios.create({
 
 // Token management utilities
 class TokenManager {
+  static setUserData(user: User) {
+    throw new Error('Method not implemented.');
+  }
+  static setAuthData(authData: any) {
+    throw new Error('Method not implemented.');
+  }
   private static AUTH_KEY = 'pro-auth';              // ✅ เปลี่ยนเป็น 'pro-auth'
   private static TOKEN_KEY = 'pro-auth-token';       // ✅ เปลี่ยนเป็น 'pro-auth-token'
   private static REFRESH_TOKEN_KEY = 'pro-auth-refresh'; // ✅ เปลี่ยนเป็น 'pro-auth-refresh'
@@ -79,112 +85,56 @@ class TokenManager {
   
   static getUserData(): User | null {
     if (typeof window === 'undefined') return null;
-    const userData = localStorage.getItem(this.USER_KEY);
-    
-    if (!userData) {
-      // ลองดูจาก AUTH_KEY
-      const authData = this.getAuthData();
-      return authData?.user || null;
-    }
-    
-    try {
-      const parsedData = JSON.parse(userData);
-      
-      // ✅ ตรวจสอบและแปลง data format
-      if (parsedData) {
-        return {
-          id: parsedData.id || 0,
-          username: parsedData.username || '',
-          email: parsedData.email || '',
-          fullname: parsedData.fullname || parsedData.displayName || '',
-          position: parsedData.position || '',
-          roles: parsedData.roles || [],
-          accessToken: parsedData.accessToken || '',
-          accessgroup: parsedData.accessgroup || 1,
-          role: parsedData.role || 'AppUser',
-          // Optional fields
-          displayName: parsedData.displayName,
-          employee_id: parsedData.employee_id,
-          telephone: parsedData.telephone,
-          department: parsedData.department,
-          supervisor_id: parsedData.supervisor_id,
-          supervisor_name: parsedData.supervisor_name,
-          supervisor_mail: parsedData.supervisor_mail,
-          supervisor_username: parsedData.supervisor_username
-        };
-      }
-    } catch (error) {
-      console.error('Error parsing user data:', error);
-    }
-    
-    return null;
-  }
-
-  static setUserData(user: User): void {
-    if (typeof window === 'undefined') return;
-    localStorage.setItem(this.USER_KEY, JSON.stringify(user));
-  }
-
-  // ✅ เพิ่มฟังก์ชันสำหรับจัดการ auth data แบบรวม
-  static getAuthData(): any | null {
-    if (typeof window === 'undefined') return null;
-    const authData = localStorage.getItem(this.AUTH_KEY);
-    return authData ? JSON.parse(authData) : null;
-  }
-
-  static setAuthData(authData: any): void {
-    if (typeof window === 'undefined') return;
-    localStorage.setItem(this.AUTH_KEY, JSON.stringify(authData));
-    
-    // เก็บ user data แยกด้วยสำหรับ backward compatibility
-    if (authData.user) {
-      this.setUserData(authData.user);
-    }
-    if (authData.accessToken) {
-      this.setToken(authData.accessToken);
-    }
-  }
-
-  // ✅ เพิ่มฟังก์ชันสำหรับจัดการ role
-  static getCurrentUserRole(): string | null {
-    const userData = this.getUserData();
+    // Read from pro-auth only
     const authData = this.getAuthData();
-    
-    // ลองหา roles array ก่อน
-    const userRoles = userData?.roles || authData?.user?.roles || authData?.roles || [];
-    
-    // ✅ ตรวจสอบว่ามี MaterialControl role หรือไม่
+    return authData?.user || null;
+  }
+  static getAuthData(): any {
+    if (typeof window === 'undefined') return null;
+    const raw = localStorage.getItem(this.AUTH_KEY);
+    if (!raw) return null;
+    try {
+      return JSON.parse(raw);
+    } catch {
+      return null;
+    }
+  }
+
+  // ✅ Use pro-auth only for roles
+  static getCurrentUserRole(): string | null {
+    const authData = this.getAuthData();
+    const userRoles = authData?.user?.roles || authData?.roles || [];
+    console.log('[TokenManager] userRoles:', userRoles); // 👈 Add this line
+
+    if (userRoles.includes('Admin')) {
+      return 'Admin';
+    }
     if (userRoles.includes('MaterialControl')) {
       return 'MaterialControl';
     }
-    
-    // ✅ ตรวจสอบว่ามี AppUser role หรือไม่
+    if (userRoles.includes('Vendor')) {
+      return 'Vendor';
+    }
     if (userRoles.includes('AppUser')) {
       return 'AppUser';
     }
-    
-    // ✅ Default เป็น AppUser
+    // Default fallback
     return 'AppUser';
   }
 
-  // ✅ เพิ่ม method hasRole ที่ขาดหายไป
   static hasRole(role: string): boolean {
-    const currentRole = this.getCurrentUserRole();
-    return currentRole === role;
+    const userRoles = this.getAllUserRoles();
+    return userRoles.includes(role);
   }
 
-  // ✅ เพิ่ม method hasAnyRole ที่ขาดหายไป
   static hasAnyRole(roles: string[]): boolean {
-    const currentRole = this.getCurrentUserRole();
-    return currentRole ? roles.includes(currentRole) : false;
+    const userRoles = this.getAllUserRoles();
+    return roles.some((role) => userRoles.includes(role));
   }
 
-  // ✅ เพิ่ม method getAllUserRoles ที่ขาดหายไป
   static getAllUserRoles(): string[] {
-    const userData = this.getUserData();
     const authData = this.getAuthData();
-    
-    return userData?.roles || authData?.user?.roles || authData?.roles || [];
+    return authData?.user?.roles || authData?.roles || [];
   }
 
   static isAppUser(): boolean {
