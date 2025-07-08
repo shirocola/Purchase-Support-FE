@@ -99,9 +99,8 @@ export function MaterialManagement() {
   const materials = materialsResponse?.items || [];
   const totalCount = materialsResponse?.total || 0;
 
-  // Permission checks
-  const canEdit = user ? canUserEditMaterial(user.role) : false;
-  const isVendor = user ? user.role === UserRole.VENDOR : false;
+  // Permission checks - วิธีที่ปลอดภัยที่สุด
+  const userRole = user?.role;
 
   // Event handlers
   const handleFilterChange = useCallback((newFilters: MaterialFilterType) => {

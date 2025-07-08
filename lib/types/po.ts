@@ -71,7 +71,6 @@ export enum UserRole {
   APP_USER = 'AppUser',
   MATERIAL_CONTROL = 'MaterialControl',
   ADMIN = 'Admin',
-  VENDOR = 'Vendor'
 }
 
 export interface User {

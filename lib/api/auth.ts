@@ -150,21 +150,57 @@ class TokenManager {
     const userData = this.getUserData();
     const authData = this.getAuthData();
     
-    // ลองหา role จากหลายที่
-    return userData?.role || 
-           authData?.user?.role || 
-           authData?.role || 
-           'AppUser'; // default role
+    // ลองหา roles array ก่อน
+    const userRoles = userData?.roles || authData?.user?.roles || authData?.roles || [];
+    
+    // ✅ ตรวจสอบว่ามี MaterialControl role หรือไม่
+    if (userRoles.includes('MaterialControl')) {
+      return 'MaterialControl';
+    }
+    
+    // ✅ ตรวจสอบว่ามี AppUser role หรือไม่
+    if (userRoles.includes('AppUser')) {
+      return 'AppUser';
+    }
+    
+    // ✅ Default เป็น AppUser
+    return 'AppUser';
   }
 
+  // ✅ เพิ่ม method hasRole ที่ขาดหายไป
   static hasRole(role: string): boolean {
     const currentRole = this.getCurrentUserRole();
     return currentRole === role;
   }
 
+  // ✅ เพิ่ม method hasAnyRole ที่ขาดหายไป
   static hasAnyRole(roles: string[]): boolean {
     const currentRole = this.getCurrentUserRole();
     return currentRole ? roles.includes(currentRole) : false;
+  }
+
+  // ✅ เพิ่ม method getAllUserRoles ที่ขาดหายไป
+  static getAllUserRoles(): string[] {
+    const userData = this.getUserData();
+    const authData = this.getAuthData();
+    
+    return userData?.roles || authData?.user?.roles || authData?.roles || [];
+  }
+
+  static isAppUser(): boolean {
+    return this.getCurrentUserRole() === 'AppUser';
+  }
+
+  static isMaterialControl(): boolean {
+    return this.getCurrentUserRole() === 'MaterialControl';
+  }
+
+  static canAccessPOList(): boolean {
+    return this.isAppUser(); // เฉพาะ AppUser เข้า po/list ได้
+  }
+
+  static canAccessMaterialManagement(): boolean {
+    return this.isMaterialControl(); // เฉพาะ MaterialControl เข้า po/material ได้
   }
 }
 
