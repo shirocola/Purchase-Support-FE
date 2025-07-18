@@ -178,7 +178,7 @@
 │   ├── utils/             # Utility functions
 │   │   └── permissions.ts  # Role-based permissions (updated for Material)
 │   └── mockData.ts        # Mock data for testing/demo
-├── __tests__/             # Test files
+├── __tests__/             # Unit tests
 │   ├── POEditPreview.test.tsx
 │   ├── POEmailForm.test.tsx
 │   ├── POAcknowledgeStatus.test.tsx
@@ -191,6 +191,18 @@
 │   ├── AuditLog.test.tsx
 │   ├── PODetail.test.tsx
 │   └── POItemsTable.test.tsx
+├── tests/e2e/             # E2E tests (Task 11) - ใหม่!
+│   ├── auth.spec.ts       # Authentication flow tests
+│   ├── menu-navigation.spec.ts  # Role-based navigation tests
+│   ├── po-workflow.spec.ts      # PO management workflow tests
+│   ├── responsive.spec.ts       # Responsive design tests
+│   ├── error-handling.spec.ts   # Error handling tests
+│   ├── main-flow.spec.ts        # Integration tests
+│   └── utils.ts                 # E2E test utilities
+├── docs/                  # Documentation - ใหม่!
+│   ├── E2E-TESTING.md     # E2E testing guide
+│   └── screenshots/       # Test screenshots and examples
+├── playwright.config.ts   # Playwright configuration - ใหม่!
 └── public/                # Static assets
 ```
 
@@ -412,9 +424,11 @@ const mockUser = {
 - **Form validation** และ error handling
 - **API integration** และ loading states
 - **Responsive design** testing
+- **End-to-End (E2E) testing** ด้วย Playwright
 
+### Unit Tests (Jest + React Testing Library)
 ```bash
-# Run all tests
+# Run all unit tests
 npm test
 
 # Run tests with coverage
@@ -422,7 +436,87 @@ npm run test:ci
 
 # Run specific test file
 npm test POEditPreview.test.tsx
+
+# Run tests in watch mode
+npm run test:watch
 ```
+
+### E2E Tests (Playwright)
+```bash
+# Run all E2E tests
+npm run test:e2e
+
+# Run E2E tests with UI mode
+npm run test:e2e:ui
+
+# Run E2E tests in headed mode (see browser)
+npm run test:e2e:headed
+
+# Debug E2E tests
+npm run test:e2e:debug
+
+# Show test report
+npm run test:e2e:report
+```
+
+### E2E Test Coverage
+E2E tests ครอบคลุมการทดสอบ:
+
+1. **Authentication Flow Tests** (`auth.spec.ts`)
+   - Login/logout functionality
+   - Invalid credentials handling
+   - Session timeout scenarios
+   - Authentication redirects
+
+2. **Role-based Menu Navigation Tests** (`menu-navigation.spec.ts`)
+   - Dynamic menu display based on user roles
+   - Role switching functionality
+   - Menu navigation and highlighting
+   - Responsive sidebar behavior
+
+3. **PO Management Workflow Tests** (`po-workflow.spec.ts`)
+   - PO list display and filtering
+   - PO creation, editing, and approval
+   - Email sending functionality
+   - Vendor acknowledge tracking
+   - Form validation and error handling
+
+4. **Responsive Design Tests** (`responsive.spec.ts`)
+   - Mobile, tablet, and desktop layouts
+   - Sidebar collapsing behavior
+   - Touch-friendly button sizes
+   - Responsive form layouts
+
+5. **Error Handling Tests** (`error-handling.spec.ts`)
+   - Network error scenarios
+   - API timeout handling
+   - Form validation errors
+   - Empty data states
+   - Session expiration handling
+
+6. **Main User Flow Tests** (`main-flow.spec.ts`)
+   - Complete end-to-end workflows
+   - Cross-browser compatibility
+   - Integration between different features
+
+### Test Structure
+```
+tests/e2e/
+├── auth.spec.ts              # Authentication flow tests
+├── menu-navigation.spec.ts   # Role-based navigation tests
+├── po-workflow.spec.ts       # PO management workflow tests
+├── responsive.spec.ts        # Responsive design tests
+├── error-handling.spec.ts    # Error handling and edge cases
+├── main-flow.spec.ts         # Main user flow integration tests
+└── utils.ts                  # Test utilities and helpers
+```
+
+### Test Configuration
+- **Playwright Config**: `playwright.config.ts`
+- **Browsers**: Chromium, Firefox, WebKit
+- **Mobile Testing**: iPhone 12, Pixel 5
+- **Screenshot/Video**: Automatic on test failure
+- **Reports**: HTML report with screenshots and traces
 
 ## 🎨 Screenshots
 
@@ -510,8 +604,19 @@ Component จะเรียก API ตาม endpoint ที่กำหนด�
 - [x] Vendor acknowledge tracking (Task 5)
 - [x] PO Status Timeline & Audit Log (Task 6)
 
-### Phase 2 (Planned)
-- [ ] PO List page
+### Phase 2 (Current - Task 11)
+- [x] **E2E Testing Implementation** ด้วย Playwright
+  - ✅ Authentication flow tests
+  - ✅ Role-based navigation tests  
+  - ✅ PO management workflow tests
+  - ✅ Responsive design tests
+  - ✅ Error handling tests
+  - ✅ Cross-browser testing
+  - ✅ Mobile device testing
+  - ✅ Test utilities and documentation
+
+### Phase 3 (Planned)
+- [ ] PO List page enhancements
 - [ ] Advanced search & filtering
 - [ ] Print functionality
 - [ ] Status history API integration
