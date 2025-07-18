@@ -178,7 +178,7 @@
 │   ├── utils/             # Utility functions
 │   │   └── permissions.ts  # Role-based permissions (updated for Material)
 │   └── mockData.ts        # Mock data for testing/demo
-├── __tests__/             # Test files
+├── __tests__/             # Unit tests
 │   ├── POEditPreview.test.tsx
 │   ├── POEmailForm.test.tsx
 │   ├── POAcknowledgeStatus.test.tsx
@@ -191,6 +191,18 @@
 │   ├── AuditLog.test.tsx
 │   ├── PODetail.test.tsx
 │   └── POItemsTable.test.tsx
+├── tests/e2e/             # E2E tests (Task 11) - ใหม่!
+│   ├── auth.spec.ts       # Authentication flow tests
+│   ├── menu-navigation.spec.ts  # Role-based navigation tests
+│   ├── po-workflow.spec.ts      # PO management workflow tests
+│   ├── responsive.spec.ts       # Responsive design tests
+│   ├── error-handling.spec.ts   # Error handling tests
+│   ├── main-flow.spec.ts        # Integration tests
+│   └── utils.ts                 # E2E test utilities
+├── docs/                  # Documentation - ใหม่!
+│   ├── E2E-TESTING.md     # E2E testing guide
+│   └── screenshots/       # Test screenshots and examples
+├── playwright.config.ts   # Playwright configuration - ใหม่!
 └── public/                # Static assets
 ```
 
@@ -592,8 +604,19 @@ Component จะเรียก API ตาม endpoint ที่กำหนด�
 - [x] Vendor acknowledge tracking (Task 5)
 - [x] PO Status Timeline & Audit Log (Task 6)
 
-### Phase 2 (Planned)
-- [ ] PO List page
+### Phase 2 (Current - Task 11)
+- [x] **E2E Testing Implementation** ด้วย Playwright
+  - ✅ Authentication flow tests
+  - ✅ Role-based navigation tests  
+  - ✅ PO management workflow tests
+  - ✅ Responsive design tests
+  - ✅ Error handling tests
+  - ✅ Cross-browser testing
+  - ✅ Mobile device testing
+  - ✅ Test utilities and documentation
+
+### Phase 3 (Planned)
+- [ ] PO List page enhancements
 - [ ] Advanced search & filtering
 - [ ] Print functionality
 - [ ] Status history API integration
