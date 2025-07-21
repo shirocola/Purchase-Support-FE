@@ -19,7 +19,7 @@ import {
 import { Microsoft as MicrosoftIcon } from '@mui/icons-material';
 import Link from 'next/link';
 import { transactionlog } from "../../../lib/utils/utils";
-import { getDefaultRouteForRole, isValidRole, mapRolesToPrimaryRole } from '../../../lib/utils/role-routing';
+import { RoleManager } from '../../../lib/utils/role-management'; // ✅ ใช้ RoleManager แทน
 
 const Login = () => {
   const { instance } = useMsal();
@@ -103,7 +103,7 @@ const Login = () => {
 
       console.log('✅ [LOGIN] Backend authentication response:', authResponse);
 
-      // Step 3: Process user roles - เฉพาะ 2 roles ที่อนุญาต
+      // Step 3: Process user roles using RoleManager
       console.log('🔵 [LOGIN] Step 4: Processing user roles...');
       console.log('🔵 [LOGIN] User Roles from Backend:', authResponse.user?.roles);
       
@@ -116,8 +116,8 @@ const Login = () => {
         return;
       }
 
-      // ใช้ mapRolesToPrimaryRole function
-      const primaryRole = mapRolesToPrimaryRole(userRoles);
+      // ✅ ใช้ RoleManager แทน individual functions
+      const primaryRole = RoleManager.mapRolesToPrimaryRole(userRoles);
       console.log('🔵 [LOGIN] Primary role determined:', primaryRole);
 
       if (!primaryRole) {
@@ -141,7 +141,7 @@ const Login = () => {
       console.log('🔵 [LOGIN] Step 6: Saving authentication data...');
       const authDataWithMeta = {
         ...authResponse,
-        user: userWithRole,  // Use user object with role field
+        user: userWithRole,
         azure: true,
         loginMethod: 'azure',
         loginTimestamp: new Date().toISOString()
@@ -158,11 +158,10 @@ const Login = () => {
 
       // Step 7: Redirect based on user role
       console.log('🔵 [LOGIN] Step 8: Determining redirect route...');
-      const redirectRoute = getDefaultRouteForRole(primaryRole);
+      const redirectRoute = RoleManager.getDefaultRouteForRole(primaryRole);
       console.log('✅ [LOGIN] Redirect route determined:', redirectRoute);
       console.log('🔵 [LOGIN] Redirecting in 2 seconds...');
       
-      // รอสักครู่เพื่อให้เห็น log แล้วค่อย redirect
       setTimeout(() => {
         console.log('🔵 [LOGIN] Redirecting now...');
         window.location.href = redirectRoute;

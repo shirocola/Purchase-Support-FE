@@ -1,8 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { useAuth } from '../lib/contexts/auth-context';
-import { getDefaultRouteForRole, isValidRole } from '../lib/utils/role-routing';
+import { useAuth, getDefaultRouteForRole, isValidRole } from '../lib/contexts/auth-context'; // ✅ import จากไฟล์เดียว
 import { Box, CircularProgress, Typography, Paper, Alert } from '@mui/material';
 import { UserRole } from '@/lib/types/po';
 

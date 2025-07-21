@@ -5,10 +5,11 @@ import { useRouter } from 'next/navigation';
 import { useEffect } from 'react';
 import { CircularProgress, Box, Typography, Button, Alert } from '@mui/material';
 import { Warning, Home } from '@mui/icons-material';
+import { RoleManager, AllowedRole } from '@/lib/utils/role-management';
 
 interface RoleGuardProps {
   children: React.ReactNode;
-  requiredRole: 'AppUser' | 'MaterialControl';
+  requiredRole: AllowedRole | AllowedRole[];
 }
 
 export function RoleGuard({ children, requiredRole }: RoleGuardProps) {
@@ -38,16 +39,19 @@ export function RoleGuard({ children, requiredRole }: RoleGuardProps) {
 
   // ✅ ใช้ user.role โดยตรง แทน getCurrentUserRole()
   const currentRole = user?.role;
-  
+  const allowedRoles = Array.isArray(requiredRole) ? requiredRole : [requiredRole];
+  const hasAccess = currentRole && RoleManager.isValidRole(currentRole) && 
+                   allowedRoles.includes(currentRole);
+
   console.log('🔍 [ROLE_GUARD] Role check:', {
     currentRole,
     requiredRole,
     user: user,
-    hasAccess: currentRole === requiredRole
+    hasAccess
   });
 
   // ✅ ตรวจสอบสิทธิ์ตาม role
-  if (currentRole !== requiredRole) {
+  if (!hasAccess) {
     console.log('❌ [ROLE_GUARD] Access denied');
     return (
       <Box
