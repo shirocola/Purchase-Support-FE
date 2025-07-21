@@ -12,12 +12,6 @@ export function getDefaultRouteForRole(role: UserRole): string {
     case UserRole.MATERIAL_CONTROL:
       return '/po/material'; // MaterialControl goes to Material Management
     
-    case UserRole.ADMIN:
-      return '/'; // Admin goes to dashboard/home
-    
-    case UserRole.VENDOR:
-      return '/vendor/portal'; // Vendor goes to their portal (if exists)
-    
     default:
       return '/'; // Fallback to home
   }
@@ -26,18 +20,15 @@ export function getDefaultRouteForRole(role: UserRole): string {
 /**
  * Check if user role can access a specific route
  */
-export function canAccessRoute(userRole: UserRole, route: string): boolean {
+export function canAccessRoute(userRole: UserRole, route: string) {
   // Define role-based route permissions
   const routePermissions: Record<string, UserRole[]> = {
-    '/po/list': [UserRole.APP_USER, UserRole.ADMIN], // Only AppUser and Admin can access PO List
-    '/po/material': [UserRole.MATERIAL_CONTROL, UserRole.ADMIN], // Only MaterialControl and Admin can access Material Management
-    '/po/[id]/edit': [UserRole.MATERIAL_CONTROL, UserRole.ADMIN], // Only MaterialControl and Admin can edit PO
-    '/po/[id]/send-email': [UserRole.MATERIAL_CONTROL, UserRole.ADMIN], // Only MaterialControl and Admin can send email
-    '/po/[id]/acknowledge-status': [UserRole.MATERIAL_CONTROL, UserRole.ADMIN], // Only MaterialControl and Admin can view acknowledge status
-    '/components-showcase': [UserRole.ADMIN], // Only Admin can access component showcase
-    '/email-demo': [UserRole.APP_USER, UserRole.MATERIAL_CONTROL, UserRole.ADMIN, UserRole.VENDOR], // Everyone can access email demo
-    '/vendor/portal': [UserRole.VENDOR, UserRole.ADMIN], // Only Vendor and Admin can access vendor portal
-    '/': [UserRole.APP_USER, UserRole.MATERIAL_CONTROL, UserRole.ADMIN, UserRole.VENDOR], // Everyone can access home
+    '/po/list': [UserRole.APP_USER, ], // Only AppUser and Admin can access PO List
+    '/po/material': [UserRole.MATERIAL_CONTROL, ], // Only MaterialControl and Admin can access Material Management
+    '/po/[id]/edit': [UserRole.MATERIAL_CONTROL, ], // Only MaterialControl and Admin can edit PO
+    '/po/[id]/send-email': [UserRole.MATERIAL_CONTROL, ], // Only MaterialControl and Admin can send email
+    '/po/[id]/acknowledge-status': [UserRole.MATERIAL_CONTROL, ], // Only MaterialControl and Admin can view acknowledge status
+    '/': [UserRole.APP_USER, UserRole.MATERIAL_CONTROL,], // Everyone can access home
   };
 
   // Check direct route match
@@ -55,8 +46,6 @@ export function canAccessRoute(userRole: UserRole, route: string): boolean {
     }
   }
 
-  // Default: Admin can access everything, others need explicit permission
-  return userRole === UserRole.ADMIN;
 }
 
 /**

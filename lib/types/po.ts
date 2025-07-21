@@ -72,7 +72,6 @@ export enum POStatus {
 export enum UserRole {
   APP_USER = 'AppUser',
   MATERIAL_CONTROL = 'MaterialControl',
-  ADMIN = 'Admin',
 }
 
 export interface User {
