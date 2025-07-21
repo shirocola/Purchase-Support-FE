@@ -1,77 +1,86 @@
-// Role-based routing utilities
 import { UserRole } from '@/lib/types/po';
 
 /**
- * Get the default route for a user role after successful login
+ * Get default route for user role after login
  */
-export function getDefaultRouteForRole(role: UserRole): string {
-  switch (role) {
+export function getDefaultRouteForRole(role: string): string {
+  console.log(`🔍 [ROUTE] getDefaultRouteForRole called with: "${role}" (type: ${typeof role})`);
+  
+  // Normalize role string
+  const normalizedRole = role?.trim();
+  console.log(`🔍 [ROUTE] Normalized role: "${normalizedRole}"`);
+  
+  switch (normalizedRole) {
+    case 'AppUser':
     case UserRole.APP_USER:
-      return '/po/list'; // AppUser goes to PO List
+      console.log(`✅ [ROUTE] AppUser detected → /po/list`);
+      return '/po/list';
     
+    case 'MaterialControl':
     case UserRole.MATERIAL_CONTROL:
-      return '/po/material'; // MaterialControl goes to Material Management
+      console.log(`✅ [ROUTE] MaterialControl detected → /po/material`);
+      return '/po/material';
     
     default:
-      return '/'; // Fallback to home
+      console.warn(`❌ [ROUTE] Unknown role for routing: "${role}"`);
+      return '/auth/unauthorized';
   }
 }
 
 /**
- * Check if user role can access a specific route
+ * Check if user has valid role (เฉพาะ 2 roles ที่อนุญาต)
  */
-export function canAccessRoute(userRole: UserRole, route: string) {
-  // Define role-based route permissions
-  const routePermissions: Record<string, UserRole[]> = {
-    '/po/list': [UserRole.APP_USER, ], // Only AppUser and Admin can access PO List
-    '/po/material': [UserRole.MATERIAL_CONTROL, ], // Only MaterialControl and Admin can access Material Management
-    '/po/[id]/edit': [UserRole.MATERIAL_CONTROL, ], // Only MaterialControl and Admin can edit PO
-    '/po/[id]/send-email': [UserRole.MATERIAL_CONTROL, ], // Only MaterialControl and Admin can send email
-    '/po/[id]/acknowledge-status': [UserRole.MATERIAL_CONTROL, ], // Only MaterialControl and Admin can view acknowledge status
-    '/': [UserRole.APP_USER, UserRole.MATERIAL_CONTROL,], // Everyone can access home
+export function isValidRole(role: string): boolean {
+  console.log(`🔍 [VALIDATION] isValidRole called with: "${role}" (type: ${typeof role})`);
+  
+  const allowedRoles = ['AppUser', 'MaterialControl'];
+  const normalizedRole = role?.trim();
+  const isValid = allowedRoles.includes(normalizedRole);
+  
+  console.log(`🔍 [VALIDATION] Allowed roles:`, allowedRoles);
+  console.log(`🔍 [VALIDATION] Normalized role: "${normalizedRole}"`);
+  console.log(`🔍 [VALIDATION] Is valid: ${isValid}`);
+  
+  return isValid;
+}
+
+/**
+ * Map backend roles to primary role for the system
+ * เฉพาะ AppUser และ MaterialControl เท่านั้น
+ */
+export function mapRolesToPrimaryRole(roles: string[]): string | null {
+  console.log(`🔍 [ROLE_MAPPING] mapRolesToPrimaryRole called with:`, roles);
+  
+  // เช็คเฉพาะ 2 roles ที่อนุญาต เท่านั้น
+  // AppUser ก่อน (principle of least privilege)
+  if (roles.includes('AppUser')) {
+    console.log(`✅ [ROLE_MAPPING] Found AppUser role → AppUser`);
+    return 'AppUser';
+  }
+  
+  if (roles.includes('MaterialControl')) {
+    console.log(`✅ [ROLE_MAPPING] Found MaterialControl role → MaterialControl`);
+    return 'MaterialControl';
+  }
+  
+  // ไม่มี role ที่อนุญาต
+  console.warn(`❌ [ROLE_MAPPING] No valid role found in:`, roles);
+  console.warn(`❌ [ROLE_MAPPING] Only 'AppUser' and 'MaterialControl' are allowed`);
+  return null;
+}
+
+/**
+ * Check if user can access specific route
+ */
+export function canAccessRoute(userRole: string, route: string): boolean {
+  const routePermissions: Record<string, string[]> = {
+    '/po/list': ['AppUser', 'MaterialControl'],
+    '/po/material': ['MaterialControl'],
+    '/po/[id]/edit': ['AppUser', 'MaterialControl'],
+    '/po/[id]/send-email': ['MaterialControl'],
+    '/po/[id]/acknowledge-status': ['MaterialControl'],
   };
-
-  // Check direct route match
-  if (routePermissions[route]) {
-    return routePermissions[route].includes(userRole);
-  }
-
-  // Check pattern matches for dynamic routes
-  for (const [pattern, allowedRoles] of Object.entries(routePermissions)) {
-    if (pattern.includes('[id]')) {
-      const regex = new RegExp(pattern.replace(/\[id\]/g, '[^/]+'));
-      if (regex.test(route)) {
-        return allowedRoles.includes(userRole);
-      }
-    }
-  }
-
-}
-
-/**
- * Get accessible menu items for a user role
- */
-export function getAccessibleMenuItems(userRole: UserRole) {
-  const allMenuItems = [
-    { path: '/', label: 'หน้าแรก', icon: 'home' },
-    { path: '/po/list', label: 'รายการ PO', icon: 'list' },
-    { path: '/po/material', label: 'จัดการวัสดุ', icon: 'inventory' },
-    { path: '/components-showcase', label: 'Component Showcase', icon: 'dashboard' },
-    { path: '/vendor/portal', label: 'Vendor Portal', icon: 'business' },
-  ];
-
-  return allMenuItems.filter(item => canAccessRoute(userRole, item.path));
-}
-
-/**
- * Redirect user to appropriate page based on their role and current route access
- */
-export function getRedirectRoute(userRole: UserRole, currentRoute: string): string | null {
-  // If user can access current route, no redirect needed
-  if (canAccessRoute(userRole, currentRoute)) {
-    return null;
-  }
-
-  // Otherwise, redirect to their default route
-  return getDefaultRouteForRole(userRole);
+  
+  const allowedRoles = routePermissions[route];
+  return allowedRoles ? allowedRoles.includes(userRole?.trim()) : false;
 }

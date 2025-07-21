@@ -19,6 +19,7 @@ import {
 import { Microsoft as MicrosoftIcon } from '@mui/icons-material';
 import Link from 'next/link';
 import { transactionlog } from "../../../lib/utils/utils";
+import { getDefaultRouteForRole, isValidRole, mapRolesToPrimaryRole } from '../../../lib/utils/role-routing';
 
 const Login = () => {
   const { instance } = useMsal();
@@ -68,7 +69,10 @@ const Login = () => {
       setAzureLoading(true);
       setLoginError("");
 
+      console.log('🔵 [LOGIN] Starting Azure authentication...');
+
       // Step 1: Get user info from Azure AD
+      console.log('🔵 [LOGIN] Step 1: Getting Azure AD token...');
       const azureResponse = await instance.loginPopup({
         scopes: [
           process.env.NEXT_PUBLIC_USER_READ_SCOPE || "User.Read",
@@ -77,10 +81,17 @@ const Login = () => {
           "email"
         ]
       });
+      console.log('✅ [LOGIN] Azure AD token received');
 
+      console.log('🔵 [LOGIN] Step 2: Calling Microsoft Graph...');
       const userInfo = await callMsGraph(azureResponse.accessToken);
+      console.log('✅ [LOGIN] Microsoft Graph response:', userInfo);
       
       // Step 2: Authenticate with your backend using the user's email
+      console.log('🔵 [LOGIN] Step 3: Authenticating with backend...');
+      console.log('🔵 [LOGIN] Backend URL:', `${backendApiUrl}/auth/login`);
+      console.log('🔵 [LOGIN] User email:', userInfo.mail);
+      
       const { data: authResponse } = await axios.post(`${backendApiUrl}/auth/login`, {
         username: userInfo.mail,
         password: 'azure_ad_auth'
@@ -90,24 +101,75 @@ const Login = () => {
         }
       });
 
-      // Step 3: Save authentication data with proper structure
+      console.log('✅ [LOGIN] Backend authentication response:', authResponse);
+
+      // Step 3: Process user roles - เฉพาะ 2 roles ที่อนุญาต
+      console.log('🔵 [LOGIN] Step 4: Processing user roles...');
+      console.log('🔵 [LOGIN] User Roles from Backend:', authResponse.user?.roles);
+      
+      const userRoles = authResponse.user?.roles || [];
+      console.log('🔵 [LOGIN] User roles array:', userRoles);
+      
+      if (!userRoles || userRoles.length === 0) {
+        console.error('❌ [LOGIN] No roles found in backend response');
+        setLoginError('❌ ไม่พบข้อมูล Role\n\nระบบไม่สามารถระบุบทบาทของผู้ใช้ได้ กรุณาติดต่อผู้ดูแลระบบ');
+        return;
+      }
+
+      // ใช้ mapRolesToPrimaryRole function
+      const primaryRole = mapRolesToPrimaryRole(userRoles);
+      console.log('🔵 [LOGIN] Primary role determined:', primaryRole);
+
+      if (!primaryRole) {
+        console.error('❌ [LOGIN] No valid role found');
+        console.error('❌ [LOGIN] Available roles:', userRoles);
+        setLoginError(`❌ ไม่มีสิทธิ์เข้าใช้งาน\n\nไม่พบบทบาทที่ได้รับอนุญาตในระบบ\nบทบาทปัจจุบัน: ${userRoles.join(', ')}\nบทบาทที่อนุญาต: AppUser, MaterialControl\n\nกรุณาติดต่อผู้ดูแลระบบ`);
+        return;
+      }
+
+      console.log('✅ [LOGIN] Role validation passed');
+
+      // Step 4: Create user object with primary role
+      console.log('🔵 [LOGIN] Step 5: Creating user object...');
+      const userWithRole = {
+        ...authResponse.user,
+        role: primaryRole
+      };
+      console.log('🔵 [LOGIN] User with role:', userWithRole);
+
+      // Step 5: Save authentication data
+      console.log('🔵 [LOGIN] Step 6: Saving authentication data...');
       const authDataWithMeta = {
         ...authResponse,
+        user: userWithRole,  // Use user object with role field
         azure: true,
         loginMethod: 'azure',
         loginTimestamp: new Date().toISOString()
       };
 
       saveAuth(authDataWithMeta);
-      setCurrentUser(authResponse.user);
+      setCurrentUser(userWithRole);
+      console.log('✅ [LOGIN] Authentication data saved');
+      console.log('✅ [LOGIN] Current user set:', userWithRole);
 
-      // Step 4: Log successful login
+      // Step 6: Log successful login
+      console.log('🔵 [LOGIN] Step 7: Logging transaction...');
       await transactionlog({ log: 'azure_login', type: 'access' });
 
-      // Step 5: Redirect to home
-      window.location.href = '/';
+      // Step 7: Redirect based on user role
+      console.log('🔵 [LOGIN] Step 8: Determining redirect route...');
+      const redirectRoute = getDefaultRouteForRole(primaryRole);
+      console.log('✅ [LOGIN] Redirect route determined:', redirectRoute);
+      console.log('🔵 [LOGIN] Redirecting in 2 seconds...');
+      
+      // รอสักครู่เพื่อให้เห็น log แล้วค่อย redirect
+      setTimeout(() => {
+        console.log('🔵 [LOGIN] Redirecting now...');
+        window.location.href = redirectRoute;
+      }, 2000);
 
     } catch (error: unknown) {
+      console.error('❌ [LOGIN] Authentication failed:', error);
       saveAuth(undefined);
 
       if (error instanceof BrowserAuthError) {
@@ -119,6 +181,8 @@ const Login = () => {
       } else if (axios.isAxiosError(error)) {
         if (error.response?.status === 401) {
           setLoginError('❌ Authentication Failed\n\nInvalid credentials or user not found in the system.');
+        } else if (error.response?.status === 403) {
+          setLoginError('❌ ไม่มีสิทธิ์เข้าใช้งาน\n\nบัญชีของคุณไม่มีสิทธิ์เข้าใช้งานระบบ กรุณาติดต่อผู้ดูแลระบบ');
         } else if (error.response?.status === 500) {
           setLoginError('❌ Server Error\n\nInternal server error. Please try again later.');
         } else {

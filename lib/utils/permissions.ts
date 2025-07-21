@@ -5,27 +5,11 @@ import { UserRole, RolePermissions } from '@/lib/types/po';
  */
 export function getRolePermissions(role: UserRole): RolePermissions {
   switch (role) {
-    case UserRole.ADMIN:
-      return {
-        canEditBasicInfo: true,
-        canEditItems: true,
-        canEditVendor: true,
-        canEditRemarks: true,
-        canSendEmail: true,
-        canSave: true,
-        canApprove: true,
-        canCancel: true,
-        canViewAcknowledgeStatus: true,
-        canResendEmail: true,
-        canCopyAcknowledgeLink: true,
-        maskedFields: []
-      };
-
     case UserRole.MATERIAL_CONTROL:
       return {
         canEditBasicInfo: true,
         canEditItems: true,
-        canEditVendor: false, // Can't change vendor
+        canEditVendor: false,
         canEditRemarks: true,
         canSendEmail: true,
         canSave: true,
@@ -42,34 +26,19 @@ export function getRolePermissions(role: UserRole): RolePermissions {
         canEditBasicInfo: false,
         canEditItems: false,
         canEditVendor: false,
-        canEditRemarks: true, // Can only edit remarks
+        canEditRemarks: true,
         canSendEmail: false,
         canSave: true,
         canApprove: false,
         canCancel: false,
-        canViewAcknowledgeStatus: true,
+        canViewAcknowledgeStatus: false,
         canResendEmail: false,
         canCopyAcknowledgeLink: false,
-        maskedFields: ['unitPrice', 'totalPrice', 'totalAmount'] // Mask price info
-      };
-
-    case UserRole.VENDOR:
-      return {
-        canEditBasicInfo: false,
-        canEditItems: false,
-        canEditVendor: false,
-        canEditRemarks: false,
-        canSendEmail: false,
-        canSave: false,
-        canApprove: false,
-        canCancel: false,
-        canViewAcknowledgeStatus: false, // Vendors shouldn't see internal tracking
-        canResendEmail: false,
-        canCopyAcknowledgeLink: false,
-        maskedFields: ['unitPrice', 'totalPrice', 'totalAmount', 'createdBy']
+        maskedFields: ['unitPrice', 'totalPrice', 'totalAmount']
       };
 
     default:
+      // Invalid role - no permissions
       return {
         canEditBasicInfo: false,
         canEditItems: false,
@@ -165,15 +134,15 @@ export function getStatusColor(status: string): string {
  * Check if a user can edit material alias names
  */
 export function canUserEditMaterial(role: UserRole): boolean {
-  return role === UserRole.ADMIN || role === UserRole.MATERIAL_CONTROL;
+  return role === UserRole.MATERIAL_CONTROL;
 }
 
 /**
  * Mask sensitive material data based on user role and confidentiality
  */
 export function maskMaterialValue(value: string, role: UserRole, isConfidential: boolean): string {
-  // Only vendors see masked confidential material data
-  if (role === UserRole.VENDOR && isConfidential) {
+  // Only material control can see masked confidential material data
+  if (role === UserRole.MATERIAL_CONTROL && isConfidential) {
     return '***';
   }
   return value;

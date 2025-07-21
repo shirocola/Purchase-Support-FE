@@ -53,23 +53,15 @@ export function AuthProvider({ children }: AuthProviderProps) {
       if (savedUser) {
         // ✅ ตรวจสอบและแปลง data format ให้ตรงกับ User interface
         const formattedUser: User = {
-          id: savedUser.id || 0,
-          username: savedUser.username || '',
           email: savedUser.email || '',
-          fullname: savedUser.fullname || savedUser.displayName || '',
-          position: savedUser.position || '',
           roles: savedUser.roles || [],
-          accessToken: savedUser.accessToken || '',
-          accessgroup: savedUser.accessgroup || 1,
           role: savedUser.role || 'AppUser',
-          // Optional fields
-          employee_id: savedUser.employee_id,
-          telephone: savedUser.telephone,
           department: savedUser.department,
-          supervisor_id: savedUser.supervisor_id,
-          supervisor_name: savedUser.supervisor_name,
-          supervisor_mail: savedUser.supervisor_mail,
-          supervisor_username: savedUser.supervisor_username
+          id: 0,
+          username: '',
+          fullname: '',
+          accessToken: '',
+          accessgroup: 0
         };
         setUser(formattedUser);
       }
