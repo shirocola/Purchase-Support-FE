@@ -321,6 +321,10 @@ export const mockMaterials: Material[] = [
     updatedAt: '2024-01-01T00:00:00Z',
     createdBy: 'system',
     updatedBy: 'system',
+    product_code: undefined,
+    plant: undefined,
+    product_des_th: undefined,
+    displayInPO: undefined
   },
   {
     id: 'mat-002',
@@ -334,6 +338,10 @@ export const mockMaterials: Material[] = [
     updatedAt: '2024-01-10T00:00:00Z',
     createdBy: 'system',
     updatedBy: 'material.control',
+    product_code: undefined,
+    plant: undefined,
+    product_des_th: undefined,
+    displayInPO: undefined
   },
   {
     id: 'mat-003',
@@ -347,6 +355,10 @@ export const mockMaterials: Material[] = [
     updatedAt: '2024-01-03T00:00:00Z',
     createdBy: 'system',
     updatedBy: 'system',
+    product_code: undefined,
+    plant: undefined,
+    product_des_th: undefined,
+    displayInPO: undefined
   },
   {
     id: 'mat-004',
@@ -360,6 +372,10 @@ export const mockMaterials: Material[] = [
     updatedAt: '2024-01-15T00:00:00Z',
     createdBy: 'system',
     updatedBy: 'material.control',
+    product_code: undefined,
+    plant: undefined,
+    product_des_th: undefined,
+    displayInPO: undefined
   },
   {
     id: 'mat-005',
@@ -373,6 +389,10 @@ export const mockMaterials: Material[] = [
     updatedAt: '2024-01-05T00:00:00Z',
     createdBy: 'system',
     updatedBy: 'system',
+    product_code: undefined,
+    plant: undefined,
+    product_des_th: undefined,
+    displayInPO: undefined
   },
   {
     id: 'mat-006',
@@ -386,6 +406,10 @@ export const mockMaterials: Material[] = [
     updatedAt: '2024-01-20T00:00:00Z',
     createdBy: 'system',
     updatedBy: 'material.control',
+    product_code: undefined,
+    plant: undefined,
+    product_des_th: undefined,
+    displayInPO: undefined
   },
   {
     id: 'mat-007',
@@ -399,6 +423,10 @@ export const mockMaterials: Material[] = [
     updatedAt: '2024-01-07T00:00:00Z',
     createdBy: 'system',
     updatedBy: 'system',
+    product_code: undefined,
+    plant: undefined,
+    product_des_th: undefined,
+    displayInPO: undefined
   },
   {
     id: 'mat-008',
@@ -412,6 +440,10 @@ export const mockMaterials: Material[] = [
     updatedAt: '2024-01-25T00:00:00Z',
     createdBy: 'system',
     updatedBy: 'material.control',
+    product_code: undefined,
+    plant: undefined,
+    product_des_th: undefined,
+    displayInPO: undefined
   },
   {
     id: 'mat-009',
@@ -425,6 +457,10 @@ export const mockMaterials: Material[] = [
     updatedAt: '2024-01-09T00:00:00Z',
     createdBy: 'system',
     updatedBy: 'system',
+    product_code: undefined,
+    plant: undefined,
+    product_des_th: undefined,
+    displayInPO: undefined
   },
   {
     id: 'mat-010',
@@ -438,6 +474,10 @@ export const mockMaterials: Material[] = [
     updatedAt: '2024-01-30T00:00:00Z',
     createdBy: 'system',
     updatedBy: 'material.control',
+    product_code: undefined,
+    plant: undefined,
+    product_des_th: undefined,
+    displayInPO: undefined
   },
 ];
 

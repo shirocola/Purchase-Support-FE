@@ -85,6 +85,19 @@ export class MaterialService {
   }
 
   /**
+   * Apply material filters for search/filtering
+   */
+  static buildMaterialFilter(searchQuery?: string, category?: string, isConfidential?: boolean): MaterialFilter {
+    const filter: MaterialFilter = {
+      category: category || '',
+      isConfidential
+    };
+    
+    // Add searchQuery as a separate parameter if needed by backend
+    return filter;
+  }
+
+  /**
    * Get single material by ID
    */
   static async getMaterial(id: string): Promise<Material | null> {
@@ -181,9 +194,9 @@ export class MaterialService {
   /**
    * Search materials for autocomplete (with RBAC)
    */
-  static async searchMaterials(query: string, limit: number = 10): Promise<Material[]> {
+  static async searchMaterials(searchQuery: string, limit: number = 10): Promise<Material[]> {
     try {
-      if (!query || query.length < 2) {
+      if (!searchQuery || searchQuery.length < 2) {
         return [];
       }
 
@@ -191,7 +204,7 @@ export class MaterialService {
         method: 'POST',
         headers: createAuthHeaders(),
         body: JSON.stringify({
-          query,
+          query: searchQuery,
           limit
         })
       });

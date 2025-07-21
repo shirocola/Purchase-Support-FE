@@ -246,8 +246,11 @@ export function MaterialManagement() {
               </TableRow>
             </TableHead>
             <TableBody>
-              {materials.map((material) => (
-                <TableRow key={`${material.product_code}-${material.plant}`} hover>
+              {materials.map((material, index) => (
+                <TableRow 
+                  key={material.id || `material-${index}`} // แทนที่ key={`${material.id}-${material.code}`}
+                  hover
+                >
                   {/* วัสดุ: แสดงรหัส + ชื่อ */}
                   <TableCell>
                     <Box>
