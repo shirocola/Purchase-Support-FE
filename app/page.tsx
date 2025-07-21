@@ -1,9 +1,9 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { useAuth, getDefaultRouteForRole, isValidRole } from '../lib/contexts/auth-context'; // ✅ import จากไฟล์เดียว
+import { useAuth } from '../lib/contexts/auth-context';
+import { RoleManager } from '../lib/utils/role-management'; // ✅ Single source
 import { Box, CircularProgress, Typography, Paper, Alert } from '@mui/material';
-import { UserRole } from '@/lib/types/po';
 
 export default function HomePage() {
   const { user } = useAuth();
@@ -24,23 +24,8 @@ export default function HomePage() {
       addLog(`User data: ${JSON.stringify(user, null, 2)}`);
       addLog(`User role: "${user.role}" (type: ${typeof user.role})`);
       
-      // Step 1: Check if role exists
       if (!user.role) {
         addLog('❌ User role is missing or empty');
-        addLog('Redirecting to /auth/unauthorized');
-        setTimeout(() => {
-          window.location.href = '/auth/unauthorized';
-        }, 2000); // รอ 2 วินาทีเพื่อให้เห็น log
-        return;
-      }
-
-      // Step 2: Check if role is valid
-      const roleIsValid = isValidRole(user.role);
-      addLog(`Role validation result: ${roleIsValid}`);
-      addLog(`Valid roles: ['AppUser', 'MaterialControl']`);
-      
-      if (!roleIsValid) {
-        addLog(`❌ Invalid role: "${user.role}"`);
         addLog('Redirecting to /auth/unauthorized');
         setTimeout(() => {
           window.location.href = '/auth/unauthorized';
@@ -48,22 +33,30 @@ export default function HomePage() {
         return;
       }
 
-      // Step 3: Get redirect route
-      const redirectRoute = getDefaultRouteForRole(user.role as UserRole);
-      addLog(`✅ Valid role detected`);
-      addLog(`Redirect route: ${redirectRoute}`);
-      addLog('Redirecting in 2 seconds...');
+      // ✅ ใช้ RoleManager แทน
+      const roleIsValid = RoleManager.isValidRole(user.role);
+      addLog(`Role validation result: ${roleIsValid}`);
+      
+      if (!roleIsValid) {
+        addLog('❌ Invalid role detected');
+        addLog('Redirecting to /auth/unauthorized');
+        setTimeout(() => {
+          window.location.href = '/auth/unauthorized';
+        }, 2000);
+        return;
+      }
+
+      // ✅ ใช้ RoleManager สำหรับ redirect
+      const defaultRoute = RoleManager.getDefaultRouteForRole(user.role);
+      addLog(`Default route for role "${user.role}": ${defaultRoute}`);
+      addLog('Redirecting in 3 seconds...');
       
       setTimeout(() => {
-        window.location.href = redirectRoute;
-      }, 2000);
-      
+        addLog('Redirecting now...');
+        window.location.href = defaultRoute;
+      }, 3000);
     } else {
-      addLog('User is not authenticated');
-      addLog('Redirecting to /auth/login in 2 seconds...');
-      setTimeout(() => {
-        window.location.href = '/auth/login';
-      }, 2000);
+      addLog('No user found, staying on homepage');
     }
   }, [user]);
 
