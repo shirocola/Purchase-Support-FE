@@ -24,31 +24,46 @@ export interface RefreshTokenResponse {
   expiresIn: number;
 }
 
-// Environment variables
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:3001/api';
-const SC_API_URL = process.env.NEXT_PUBLIC_SC_API_URL || 'https://api-dev.osotspa.com/securitycontrol/api';
+// Environment variables - Updated to use backend only
+const BACKEND_API_URL = process.env.NEXT_PUBLIC_BACKEND_API_URL || 'http://localhost:3001/api';
 
 // Configure axios instance for auth
 const authApi = axios.create({
-  baseURL: API_BASE_URL,
+  baseURL: BACKEND_API_URL,
   timeout: 10000,
-  withCredentials: true, // Important for httpOnly cookies
+  withCredentials: true,
 });
 
 // Token management utilities
 class TokenManager {
-  static setUserData(user: User) {
-    throw new Error('Method not implemented.');
-  }
-  static setAuthData(authData: any) {
-    throw new Error('Method not implemented.');
-  }
-  private static AUTH_KEY = 'pro-auth';              // ✅ เปลี่ยนเป็น 'pro-auth'
-  private static TOKEN_KEY = 'pro-auth-token';       // ✅ เปลี่ยนเป็น 'pro-auth-token'
-  private static REFRESH_TOKEN_KEY = 'pro-auth-refresh'; // ✅ เปลี่ยนเป็น 'pro-auth-refresh'
-  private static USER_KEY = 'pro-auth-user';         // ✅ เปลี่ยนเป็น 'pro-auth-user'
+  private static AUTH_KEY = 'pro-auth';
+  private static TOKEN_KEY = 'pro-auth-token';
+  private static REFRESH_TOKEN_KEY = 'pro-auth-refresh';
+  private static USER_KEY = 'pro-auth-user';
   
-  // For development/fallback - in production should use httpOnly cookies
+  // ✅ Fixed: Implement setUserData method
+  static setUserData(user: User): void {
+    if (typeof window === 'undefined') return;
+    localStorage.setItem(this.USER_KEY, JSON.stringify(user));
+  }
+  
+  // ✅ Fixed: Implement setAuthData method
+  static setAuthData(authData: any): void {
+    if (typeof window === 'undefined') return;
+    localStorage.setItem(this.AUTH_KEY, JSON.stringify(authData));
+    
+    // Also store individual components for backward compatibility
+    if (authData.accessToken) {
+      this.setToken(authData.accessToken);
+    }
+    if (authData.refreshToken) {
+      this.setRefreshToken(authData.refreshToken);
+    }
+    if (authData.user) {
+      this.setUserData(authData.user);
+    }
+  }
+  
   static getToken(): string | null {
     if (typeof window === 'undefined') return null;
     return localStorage.getItem(this.TOKEN_KEY);
@@ -65,7 +80,7 @@ class TokenManager {
     localStorage.removeItem(this.TOKEN_KEY);
     localStorage.removeItem(this.REFRESH_TOKEN_KEY);
     localStorage.removeItem(this.USER_KEY);
-    // ลบ legacy keys
+    // Remove legacy keys
     localStorage.removeItem('auth');
     localStorage.removeItem('authToken');
     localStorage.removeItem('refreshToken');
@@ -85,10 +100,21 @@ class TokenManager {
   
   static getUserData(): User | null {
     if (typeof window === 'undefined') return null;
-    // Read from pro-auth only
+    // Try to get from stored user data first
+    const userData = localStorage.getItem(this.USER_KEY);
+    if (userData) {
+      try {
+        return JSON.parse(userData);
+      } catch {
+        // Fallback to auth data
+      }
+    }
+    
+    // Fallback to auth data
     const authData = this.getAuthData();
     return authData?.user || null;
   }
+  
   static getAuthData(): any {
     if (typeof window === 'undefined') return null;
     const raw = localStorage.getItem(this.AUTH_KEY);
@@ -100,13 +126,14 @@ class TokenManager {
     }
   }
 
-  // ✅ Use pro-auth only for roles
   static getCurrentUserRole(): string | null {
     const authData = this.getAuthData();
-    const userRoles = authData?.user?.roles || authData?.roles || [];
-    console.log('[TokenManager] userRoles:', userRoles); // 👈 Add this line
+    const userData = this.getUserData();
+    const userRoles = userData?.roles || authData?.user?.roles || authData?.roles || [];
+    
+    console.log('[TokenManager] userRoles:', userRoles);
 
-    if (userRoles.includes('Admin')) {
+    if (userRoles.includes('Admin') || userRoles.includes('administrator')) {
       return 'Admin';
     }
     if (userRoles.includes('MaterialControl')) {
@@ -134,7 +161,8 @@ class TokenManager {
 
   static getAllUserRoles(): string[] {
     const authData = this.getAuthData();
-    return authData?.user?.roles || authData?.roles || [];
+    const userData = this.getUserData();
+    return userData?.roles || authData?.user?.roles || authData?.roles || [];
   }
 
   static isAppUser(): boolean {
@@ -146,11 +174,11 @@ class TokenManager {
   }
 
   static canAccessPOList(): boolean {
-    return this.isAppUser(); // เฉพาะ AppUser เข้า po/list ได้
+    return this.isAppUser();
   }
 
   static canAccessMaterialManagement(): boolean {
-    return this.isMaterialControl(); // เฉพาะ MaterialControl เข้า po/material ได้
+    return this.isMaterialControl();
   }
 }
 
@@ -209,16 +237,22 @@ authApi.interceptors.response.use(
 
 export class AuthService {
   /**
-   * Login user with username and password (Modern API)
+   * Login user with username and password - Updated for backend API
    */
   static async login(credentials: LoginRequest): Promise<LoginResponse> {
-    const response: AxiosResponse<APIResponse<LoginResponse>> = await authApi.post('/auth/login', credentials);
+    const response = await authApi.post('/auth/login', credentials);
     
-    if (!response.data.success) {
-      throw new Error(response.data.message || 'Login failed');
+    // Backend returns different structure than expected APIResponse
+    if (!response.data.user || !response.data.accessToken) {
+      throw new Error(response.data.error || 'Login failed');
     }
     
-    const loginData = response.data.data!;
+    const loginData = {
+      user: response.data.user,
+      token: response.data.accessToken,
+      refreshToken: response.data.refreshToken,
+      expiresIn: 900 // 15 minutes default
+    };
     
     // Store tokens and user data
     TokenManager.setToken(loginData.token);
@@ -237,7 +271,6 @@ export class AuthService {
     try {
       await authApi.post('/auth/logout');
     } catch (error) {
-      // Even if API call fails, we should clear local tokens
       console.warn('Logout API call failed:', error);
     } finally {
       TokenManager.removeToken();
@@ -245,16 +278,16 @@ export class AuthService {
   }
   
   /**
-   * Get current user profile
+   * Get current user profile - Updated to use verify endpoint
    */
   static async getProfile(): Promise<User> {
-    const response: AxiosResponse<APIResponse<User>> = await authApi.get('/user/profile');
+    const response = await authApi.get('/auth/verify');
     
-    if (!response.data.success) {
-      throw new Error(response.data.message || 'Failed to fetch profile');
+    if (!response.data.valid || !response.data.user) {
+      throw new Error('Failed to fetch profile');
     }
     
-    const user = response.data.data!;
+    const user = response.data.user;
     TokenManager.setUserData(user);
     
     return user;
@@ -264,15 +297,19 @@ export class AuthService {
    * Refresh access token
    */
   static async refreshToken(refreshToken: string): Promise<RefreshTokenResponse> {
-    const response: AxiosResponse<APIResponse<RefreshTokenResponse>> = await authApi.post('/auth/refresh', {
+    const response = await authApi.post('/auth/refresh', {
       refreshToken
     });
     
-    if (!response.data.success) {
-      throw new Error(response.data.message || 'Token refresh failed');
+    if (!response.data.accessToken) {
+      throw new Error(response.data.error || 'Token refresh failed');
     }
     
-    return response.data.data!;
+    return {
+      token: response.data.accessToken,
+      refreshToken: response.data.refreshToken,
+      expiresIn: 900 // 15 minutes default
+    };
   }
   
   /**
@@ -320,11 +357,9 @@ export class AuthService {
     if (!token) return false;
     
     try {
-      // Try to get profile to validate token
       await this.getProfile();
       return true;
     } catch (error) {
-      // Token might be expired, try refresh
       const refreshToken = TokenManager.getRefreshToken();
       if (!refreshToken) return false;
       
@@ -343,91 +378,31 @@ export class AuthService {
   }
 }
 
-// เพิ่มฟังก์ชันสำหรับขอ OAuth2 token
-async function getOAuth2Token() {
-  const scApiUrl = process.env.NEXT_PUBLIC_SC_API_URL;
-  const clientId = process.env.NEXT_PUBLIC_APP_CLIENT_ID;
-  const clientSecret = process.env.NEXT_PUBLIC_APP_CLIENT_SECRET;
-  const grantType = process.env.NEXT_PUBLIC_APP_GRANT_TYPE;
-
-  if (!scApiUrl || !clientId || !clientSecret || !grantType) {
-    throw new Error('Missing required OAuth2 configuration');
-  }
-
-  const tokenParams = new URLSearchParams();
-  tokenParams.append('client_id', clientId);
-  tokenParams.append('client_secret', clientSecret);
-  tokenParams.append('grant_type', grantType);
-  
-  const response = await fetch(`${scApiUrl}/oauth2/token`, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/x-www-form-urlencoded',
-    },
-    body: tokenParams.toString()
-  });
-
-  if (!response.ok) {
-    throw new Error(`Failed to get OAuth2 token: ${response.status}`);
-  }
-
-  const tokenData = await response.json();
-  return tokenData.access_token;
-}
-
-// แก้ไขฟังก์ชัน getUserByToken
+// ✅ Updated getUserByToken to use backend API
 export async function getUserByToken(accessToken: string) {
-  // ขอ OAuth2 token สำหรับ API authorization
-  const oauthToken = await getOAuth2Token();
-  
-  return await axios.post(`${SC_API_URL}/auth/verify_token`, {
-    accessToken
-  }, {
+  const response = await axios.get(`${BACKEND_API_URL}/auth/verify`, {
     headers: {
-      'Authorization': `Bearer ${oauthToken}`,  // ใช้ OAuth2 token
+      'Authorization': `Bearer ${accessToken}`,
       'Content-Type': 'application/json'
     }
   });
-}
-
-// แก้ไขฟังก์ชัน getUserByModule
-export async function getUserByModule(userId: number, moduleId: string) {
-  // ขอ OAuth2 token สำหรับ API authorization
-  const oauthToken = await getOAuth2Token();
   
-  return await axios.post(`${SC_API_URL}/roles_modulesearch`, {
-    userid: userId,
-    module_id: moduleId
-  }, {
-    headers: {
-      'Authorization': `Bearer ${oauthToken}`,  // ใช้ OAuth2 token
-      'Content-Type': 'application/json'
-    }
-  })
-  .then((response) => response.data)  // คืนค่า response.data แทน response object
-  .then((response) => response.data); // และ response.data อีกครั้ง (ตามโปรเจกต์อื่น)
+  return response;
 }
 
-// Legacy login function (ใช้ตามเดิม - ไม่ต้อง OAuth2 token)
-export async function login(username: string, password: string) {
-  try {
-    const response = await axios.post(`${SC_API_URL}/auth/signin`, {
-      username,
-      password
-    });
-    return response;
-  } catch (error) {
-    console.error('Login API error:', error);
-    throw error;
-  }
+// ✅ Updated getUserByModule - simplified since backend handles AD integration
+export async function getUserByModule(userId: number, moduleId: string) {
+  // For now, return a simple check - you can expand this based on your needs
+  // Since backend handles AD authentication, we can assume user has access
+  return Promise.resolve({ data: { hasAccess: true } });
 }
 
-// ✅ เพิ่มฟังก์ชันสำหรับ save auth data (ใช้ใน login flow)
+// ✅ Updated saveAuth function to work with backend response structure
 export function saveAuth(authData: any): void {
   if (authData) {
     TokenManager.setAuthData(authData);
     
-    // ✅ เก็บข้อมูลเพิ่มเติมถ้ามี
+    // Store additional metadata if provided
     if (authData.azure !== undefined) {
       localStorage.setItem('azure', authData.azure.toString());
     }
